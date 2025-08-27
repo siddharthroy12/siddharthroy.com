@@ -17,7 +17,11 @@
       href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap"
       rel="stylesheet"
     />
+    <script src="https://accounts.google.com/gsi/client"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      let PUBLIC_GOOGLE_CLIENT_ID = "{{ .GoogleClientId }}";
+    </script>
     <title>{{template "title" .}}</title>
   </head>
   <body class="theme-light container">
@@ -47,6 +51,7 @@
     <!-- And include the JavaScript file -->
     <script src="/static/js/main.js" type="text/javascript"></script>
     <script src="/static/js/darkmode.js" type="text/javascript"></script>
+    <script src="/static/js/googlelogin.js" type="text/javascript"></script>
   </body>
 </html>
 {{end}}

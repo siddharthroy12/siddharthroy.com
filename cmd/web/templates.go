@@ -7,14 +7,17 @@ import (
 	"text/template"
 	"time"
 
+	"siddharthroy.com/internal/models"
 	"siddharthroy.com/ui"
 )
 
 type templateData struct {
 	Page            any
-	Form            any
 	Flash           string
 	IsAuthenticated bool
+	User            models.User
+	IsAdmin         bool
+	GoogleClientId  string
 }
 
 func humanDate(t time.Time) string {
@@ -26,9 +29,12 @@ var functions = template.FuncMap{
 }
 
 func (app *application) newTemplateData(r *http.Request) templateData {
+	user, _ := app.getUserFromRequest(r)
 	return templateData{
 		Flash:           app.sessionManager.PopString(r.Context(), "flash"),
 		IsAuthenticated: app.isAuthenticated(r),
+		User:            user,
+		GoogleClientId:  app.config.googleClientId,
 	}
 }
 

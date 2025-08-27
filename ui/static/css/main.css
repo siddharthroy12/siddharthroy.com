@@ -194,6 +194,7 @@ a {
   text-decoration: underline;
   text-decoration-thickness: 1.5px;
   text-underline-offset: 2px;
+  cursor: pointer;
 }
 
 a code {

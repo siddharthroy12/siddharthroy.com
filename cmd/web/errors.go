@@ -54,13 +54,9 @@ func (app *application) notFoundHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) pageNotFoundHandler(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData(r)
-
-	app.render(w, r, 200, "404.html", data)
+	app.render(w, r, 200, "404.html", nil)
 }
 
 func (app *application) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData(r)
-
-	app.render(w, r, 200, "method-not-allowed.html", data)
+	app.render(w, r, 200, "method-not-allowed.html", nil)
 }

@@ -51,17 +51,13 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		id := app.sessionManager.GetInt(r.Context(), string(authenticatedUserIDContextKey))
-
-		if id == 0 {
-			next.ServeHTTP(w, r)
-			return
-		}
+		id := app.sessionManager.GetInt(r.Context(), (authenticatedUserIDContextKey))
 
 		user, err := app.users.GetById(id)
 
 		if err != nil {
-			app.serverError(w, r, err)
+			print(err.Error())
+			next.ServeHTTP(w, r)
 			return
 		}
 
@@ -85,9 +81,9 @@ func (app *application) getUserFromRequest(r *http.Request) (models.User, error)
 func (app *application) requireAuthenticated(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		_, err := app.getUserFromRequest(r)
+		ok := app.isAuthenticated(r)
 
-		if err != nil {
+		if !ok {
 			http.Redirect(w, r, "/not-authorized", http.StatusSeeOther)
 			return
 		}

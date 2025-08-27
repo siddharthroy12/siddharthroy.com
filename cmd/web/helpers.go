@@ -15,7 +15,9 @@ import (
 
 type envelope map[string]any
 
-func (app *application) render(w http.ResponseWriter, r *http.Request, status int, page string, data templateData) {
+func (app *application) render(w http.ResponseWriter, r *http.Request, status int, page string, pageData any) {
+	templateData := app.newTemplateData(r)
+	templateData.Page = pageData
 	ts, ok := app.templateCache[page]
 
 	if !ok {
@@ -25,7 +27,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	}
 	var buf bytes.Buffer
 
-	err := ts.ExecuteTemplate(&buf, "base", data)
+	err := ts.ExecuteTemplate(&buf, "base", templateData)
 
 	if err != nil {
 		app.serverError(w, r, err)
@@ -147,4 +149,8 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data envelo
 	w.Write(js)
 
 	return nil
+}
+
+func (app *application) setFlash(r *http.Request, message string) {
+	app.sessionManager.Put(r.Context(), "flash", message)
 }

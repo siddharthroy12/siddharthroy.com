@@ -1,8 +1,11 @@
 {{ define "footer" }}
 <footer>
   <div class="footer-content">
-    <a>Login</a>
+    {{ if .IsAuthenticated }}
     <a href="/logout">Logout</a>
+    {{ else }}
+    <a onclick="googleLogin()">Login</a>
+    {{ end }}
   </div>
 </footer>
 {{ end }}
