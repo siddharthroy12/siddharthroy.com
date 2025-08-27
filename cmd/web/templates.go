@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/fs"
+	"net/http"
 	"path/filepath"
 	"text/template"
 	"time"
@@ -10,7 +11,10 @@ import (
 )
 
 type templateData struct {
-	Page any
+	Page            any
+	Form            any
+	Flash           string
+	IsAuthenticated bool
 }
 
 func humanDate(t time.Time) string {
@@ -21,8 +25,11 @@ var functions = template.FuncMap{
 	"humanDate": humanDate,
 }
 
-func (app *application) newTemplateData() templateData {
-	return templateData{}
+func (app *application) newTemplateData(r *http.Request) templateData {
+	return templateData{
+		Flash:           app.sessionManager.PopString(r.Context(), "flash"),
+		IsAuthenticated: app.isAuthenticated(r),
+	}
 }
 
 type templateCache map[string]*template.Template

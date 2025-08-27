@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -40,5 +41,52 @@ func (a *application) saveAndLoadSession(next http.Handler) http.Handler {
 			handler := a.sessionManager.LoadAndSave(next)
 			handler.ServeHTTP(w, r)
 		}
+	})
+}
+func (a *application) authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := a.sessionManager.GetInt(r.Context(), string(authenticatedUserIDContextKey))
+
+		if id == 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		user, err := a.users.GetById(id)
+
+		if err != nil {
+			a.serverError(w, r, err)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), isAuthenticatedContextKey, true)
+		ctx = context.WithValue(ctx, userContextkey, user)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (a *application) requireAuthenticated(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := a.sessionManager.GetInt(r.Context(), string(authenticatedUserIDContextKey))
+
+		if id == 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		user, err := a.users.GetById(id)
+
+		if err != nil {
+			a.serverError(w, r, err)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), isAuthenticatedContextKey, true)
+		ctx = context.WithValue(ctx, userContextkey, user)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
 	})
 }

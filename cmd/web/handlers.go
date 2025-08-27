@@ -1,6 +1,11 @@
 package main
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+
+	"siddharthroy.com/internal/validator"
+)
 
 type Project struct {
 	Name        string
@@ -8,14 +13,21 @@ type Project struct {
 	Link        string
 }
 
-type PageData struct {
+type HomePageData struct {
 	Projects []Project
 }
 
-func (app *application) homePageHandler(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData()
+type SignupForm struct {
+	Name                string `form:"title"`
+	Email               string `form:"content"`
+	Password            string `from:"expires"`
+	validator.Validator `form:"_"`
+}
 
-	pageData := PageData{
+func (app *application) homePageHandler(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+
+	pageData := HomePageData{
 		Projects: []Project{
 			{Name: "GlobeChat", Description: "Chats on world map", Link: "https://globechat.live"},
 			{Name: "Links Explorer", Description: "View Interactive graph of links", Link: "https://github.com/siddharthroy12/links_explorer"},
@@ -31,31 +43,45 @@ func (app *application) homePageHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) postsPageHandler(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData()
+	data := app.newTemplateData(r)
 
 	app.render(w, r, 200, "posts.html", data)
 }
 
 func (app *application) petPicturesPageHandler(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData()
+	data := app.newTemplateData(r)
 
 	app.render(w, r, 200, "katrina.html", data)
 }
 
 func (app *application) drawingsPageHandler(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData()
+	data := app.newTemplateData(r)
 
 	app.render(w, r, 200, "sketches.html", data)
 }
 
-func (app *application) pageNotFoundHandler(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData()
-
-	app.render(w, r, 200, "sketches.html", data)
+func (app *application) signupPageHandler(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+	data.Form = SignupForm{}
+	app.render(w, r, http.StatusOK, "signup.html", data)
 }
 
-func (app *application) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData()
+func (app *application) adminPageHandler(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+	data.Form = SignupForm{}
+	app.render(w, r, http.StatusOK, "admin.html", data)
+}
 
-	app.render(w, r, 200, "sketches.html", data)
+func (app *application) logoutHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "tmp")
+	err := app.sessionManager.RenewToken(r.Context())
+
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+
+	app.sessionManager.Remove(r.Context(), "authenticatedUserId")
+
+	app.sessionManager.Put(r.Context(), "flash", "You've been logged out successfully!")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

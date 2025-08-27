@@ -6,7 +6,7 @@ build:
 
 .PHONY: run
 run:
-	go run ./cmd/web -dsn ${DB_DSN}
+	go run ./cmd/web -dsn ${DB_DSN} -gclientid ${GOOGLE_CLIENT_ID}
 
 .PHONY: psql
 psql:

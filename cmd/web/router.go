@@ -17,8 +17,9 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/posts", app.postsPageHandler)
 	router.HandlerFunc(http.MethodGet, "/katrina", app.petPicturesPageHandler)
 	router.HandlerFunc(http.MethodGet, "/sketches", app.drawingsPageHandler)
+	router.HandlerFunc(http.MethodGet, "/login", app.loginWihGoogleHandler)
 	router.NotFound = http.HandlerFunc(app.pageNotFoundHandler)
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedHandler)
 
-	return app.recoverPanic(router)
+	return app.recoverPanic(app.saveAndLoadSession(router))
 }

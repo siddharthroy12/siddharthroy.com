@@ -1,6 +1,6 @@
 {{define "base"}}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-us" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <!-- CSS -->
@@ -18,17 +18,34 @@
       rel="stylesheet"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{template "title" .}} - Snippetbox</title>
+    <title>{{template "title" .}}</title>
   </head>
   <body class="theme-light container">
-    <header class="header">
-      <img src="/static/img/owl.webp" class="owl" width="150px" alt="owl" />
-      <h1 class="header-name">Siddharth Roy</h1>
+    <header>
+      <div>
+        <h1>
+          <a href="/">siddharth roy</a>
+        </h1>
+        <div class="header-controls">
+          <div class="toggle-switch visible">
+            <input
+              type="checkbox"
+              id="darkModeToggle"
+              class="toggle-input"
+              aria-label="Toggle dark mode"
+            />
+            <label for="darkModeToggle" class="toggle-label">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
       {{ template "nav" .}}
     </header>
-    <main>{{ template "main" .}}</main>
+    <main class="content-wrapper">{{ template "main" .}}</main>
     <!-- And include the JavaScript file -->
     <script src="/static/js/main.js" type="text/javascript"></script>
+    <script src="/static/js/darkmode.js" type="text/javascript"></script>
   </body>
 </html>
 {{end}}

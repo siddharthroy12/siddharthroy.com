@@ -15,12 +15,14 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	_ "github.com/lib/pq"
+	"siddharthroy.com/internal/models"
 )
 
 type config struct {
-	port int
-	env  string
-	dsn  string
+	port           int
+	env            string
+	dsn            string
+	googleClientId string
 }
 
 type application struct {
@@ -29,6 +31,7 @@ type application struct {
 	templateCache  templateCache
 	sessionManager *scs.SessionManager
 	formDecorder   *form.Decoder
+	users          models.UserModel
 }
 
 func main() {
@@ -36,9 +39,14 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.googleClientId, "gclientid", "", "Google client ID for oauth")
 	flag.StringVar(&cfg.dsn, "dsn", "", "Postgres DSN")
-
 	flag.Parse()
+
+	if len(strings.TrimSpace(cfg.googleClientId)) == 0 {
+		println("gclientid is not provided")
+		os.Exit(1)
+	}
 
 	if len(strings.TrimSpace(cfg.dsn)) == 0 {
 		println("dsn is not provided")
@@ -73,6 +81,9 @@ func main() {
 		sessionManager: sessionManager,
 		formDecorder:   formDecorder,
 		templateCache:  templateCache,
+		users: models.UserModel{
+			DB: db,
+		},
 	}
 
 	srv := http.Server{
