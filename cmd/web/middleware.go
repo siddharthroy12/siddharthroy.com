@@ -51,10 +51,13 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		}
 		id := app.sessionManager.GetInt(r.Context(), (authenticatedUserIDContextKey))
 
+		if id == 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
 		user, err := app.users.GetById(id)
 
 		if err != nil {
-			print(err.Error())
 			next.ServeHTTP(w, r)
 			return
 		}
