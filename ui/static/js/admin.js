@@ -1,11 +1,3 @@
-function deleteImage(src) {
-  fetch(src, {
-    method: "DELETE",
-  }).then(() => {
-    window.location.reload();
-  });
-}
-
 document
   .getElementById("adminLoginForm")
   .addEventListener("submit", async function (e) {

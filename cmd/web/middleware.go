@@ -9,7 +9,7 @@ import (
 
 func (app *application) commonHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("AdminPassword", "1234admin")
+		w.Header().Set("adminPassword", "1234admin2025")
 		next.ServeHTTP(w, r)
 	})
 }
@@ -55,6 +55,7 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
+
 		user, err := app.users.GetById(id)
 
 		if err != nil {

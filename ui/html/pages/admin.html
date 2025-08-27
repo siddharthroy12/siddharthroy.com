@@ -1,5 +1,15 @@
 {{define "title"}} Admin {{end}} {{define "main"}}
-<h2>Admin Page</h2>
 
-<p>There is nothing to see here. Yet.</p>
+<div class="error-message" id="errorMessage">
+  Password didn't match. Please try again.
+</div>
+
+<div class="loading" id="loadingMessage">Checking password...</div>
+<form id="adminLoginForm">
+  <label>Password</label>
+  <input type="password" id="adminPassword" />
+  <button>Login</button>
+</form>
+
+<script src="/static/js/admin.js" type="text/javascript"></script>
 {{end}}

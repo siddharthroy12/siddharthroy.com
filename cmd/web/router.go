@@ -24,7 +24,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/login", app.loginWihGoogleHandler)
 	router.HandlerFunc(http.MethodGet, "/not-authorized", app.notAuthorizedHanlder)
 	router.HandlerFunc(http.MethodGet, "/logout", app.requireAuthenticated(app.logoutHandler))
-	router.HandlerFunc(http.MethodGet, "/admin", app.requireAdmin(app.adminPageHandler))
+	router.HandlerFunc(http.MethodGet, "/admin", (app.adminPageHandler))
 	router.NotFound = http.HandlerFunc(app.pageNotFoundHandler)
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedHandler)
 

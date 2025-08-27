@@ -719,6 +719,11 @@ input {
   border-radius: 0.6rem;
   padding-right: 0.75rem;
   display: block;
+  color: var(--text-color);
+}
+
+input:focus {
+  outline-color: var(--text-color);
 }
 
 input[type="file"] {
