@@ -15,6 +15,7 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
 	router.HandlerFunc(http.MethodGet, "/", app.homePageHandler)
 	router.HandlerFunc(http.MethodGet, "/posts", app.postsPageHandler)
+	router.HandlerFunc(http.MethodPut, "/toggledark", app.toggleThemePrefrenceHandler)
 	router.HandlerFunc(http.MethodGet, "/media/*filepath", app.mediaHandler)
 	router.HandlerFunc(http.MethodDelete, "/media/*filepath", app.requireAdmin(app.deleteMediaHandler))
 	router.HandlerFunc(http.MethodPost, "/katrina", app.requireAdmin(app.uploadKatrinaPicHandler))

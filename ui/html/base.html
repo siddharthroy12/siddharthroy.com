@@ -1,6 +1,10 @@
 {{define "base"}}
 <!DOCTYPE html>
-<html lang="en-us" dir="ltr">
+<html
+  lang="en-us"
+  dir="ltr"
+  class="{{ if .IsDark }} dark-mode-on {{else}} dark-mode-off {{ end }}"
+>
   <head>
     <meta charset="UTF-8" />
     <!-- CSS -->
@@ -29,7 +33,7 @@
     </script>
     <title>{{template "title" .}}</title>
   </head>
-  <body class="theme-light container">
+  <body>
     <header>
       <div>
         <h1>
@@ -40,8 +44,17 @@
             <input
               type="checkbox"
               id="darkModeToggle"
-              class="toggle-input"
+              class="toggle-input visible"
               aria-label="Toggle dark mode"
+              onclick="toggleTheme()"
+              {{
+              if
+              .IsDark
+              }}
+              checked
+              {{
+              end
+              }}
             />
             <label for="darkModeToggle" class="toggle-label">
               <span class="toggle-slider"></span>

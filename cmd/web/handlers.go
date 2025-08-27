@@ -82,6 +82,11 @@ func (app *application) drawingsPageHandler(w http.ResponseWriter, r *http.Reque
 	app.render(w, r, 200, "sketches.html", pageData)
 }
 
+func (app *application) toggleThemePrefrenceHandler(w http.ResponseWriter, r *http.Request) {
+	app.sessionManager.Put(r.Context(), (isDarkMode), !app.isDarkMode(r))
+	app.writeJSON(w, http.StatusOK, envelope{"message": "updated"}, nil)
+}
+
 func (app *application) uploadSketchHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := app.uploadMediaFromRequest(r, "sketches")

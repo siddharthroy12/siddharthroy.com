@@ -18,6 +18,7 @@ type templateData struct {
 	User            models.User
 	IsAdmin         bool
 	GoogleClientId  string
+	IsDark          bool
 }
 
 func humanDate(t time.Time) string {
@@ -36,6 +37,7 @@ func (app *application) newTemplateData(r *http.Request) templateData {
 		User:            user,
 		IsAdmin:         app.isAdmin(r),
 		GoogleClientId:  app.config.googleClientId,
+		IsDark:          app.isDarkMode(r),
 	}
 }
 

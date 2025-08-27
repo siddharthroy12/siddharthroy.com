@@ -277,3 +277,8 @@ func (app *application) uploadMediaFromRequest(r *http.Request, folder string) e
 
 	return nil
 }
+
+func (app *application) isDarkMode(r *http.Request) bool {
+	isDark := app.sessionManager.GetBool(r.Context(), (isDarkMode))
+	return isDark
+}
