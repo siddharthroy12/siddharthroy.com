@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -21,11 +23,27 @@ type HomePageData struct {
 	Projects []Project
 }
 
+type ImageGalleryPageData struct {
+	Folder string
+	Images []string
+}
+
 type SignupForm struct {
 	Name                string `form:"title"`
 	Email               string `form:"content"`
 	Password            string `from:"expires"`
 	validator.Validator `form:"_"`
+}
+
+func (app *application) createImageGalleryPageData(folder string) (ImageGalleryPageData, error) {
+	images, err := app.getImageURLs(folder)
+	if err != nil {
+		return ImageGalleryPageData{}, err
+	}
+	return ImageGalleryPageData{
+		Folder: folder,
+		Images: images,
+	}, nil
 }
 
 func (app *application) homePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -47,13 +65,118 @@ func (app *application) postsPageHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *application) petPicturesPageHandler(w http.ResponseWriter, r *http.Request) {
-
-	app.render(w, r, 200, "katrina.html", nil)
+	pageData, err := app.createImageGalleryPageData("katrina")
+	if err != nil {
+		app.serverErrorResponse(w, r, err, "fetching images")
+		return
+	}
+	app.render(w, r, 200, "katrina.html", pageData)
 }
 
 func (app *application) drawingsPageHandler(w http.ResponseWriter, r *http.Request) {
+	pageData, err := app.createImageGalleryPageData("sketches")
+	if err != nil {
+		app.serverErrorResponse(w, r, err, "fetching images")
+		return
+	}
+	app.render(w, r, 200, "sketches.html", pageData)
+}
 
-	app.render(w, r, 200, "sketches.html", nil)
+func (app *application) uploadSketchHandler(w http.ResponseWriter, r *http.Request) {
+
+	err := app.uploadMediaFromRequest(r, "sketches")
+	if err != nil {
+		app.logError(r, err, "uploading media")
+		app.setFlash(r, "Something went wrong")
+		pageData, err := app.createImageGalleryPageData("sketches")
+		if err != nil {
+			app.serverErrorResponse(w, r, err, "fetching images")
+			return
+		}
+		app.render(w, r, http.StatusBadRequest, "sketches.html", pageData)
+		return
+	}
+
+	app.setFlash(r, "Imaged Uploaded")
+	pageData, err := app.createImageGalleryPageData("sketches")
+	if err != nil {
+		app.serverErrorResponse(w, r, err, "fetching images")
+		return
+	}
+	app.render(w, r, http.StatusOK, "sketches.html", pageData)
+}
+
+func (app *application) uploadKatrinaPicHandler(w http.ResponseWriter, r *http.Request) {
+
+	err := app.uploadMediaFromRequest(r, "katrina")
+	if err != nil {
+		app.logError(r, err, "uploading media")
+		app.setFlash(r, "Something went wrong")
+		pageData, err := app.createImageGalleryPageData("katrina")
+		if err != nil {
+			app.serverErrorResponse(w, r, err, "fetching images")
+			return
+		}
+		app.render(w, r, http.StatusBadRequest, "katrina.html", pageData)
+		return
+	}
+
+	app.setFlash(r, "Imaged Uploaded")
+	pageData, err := app.createImageGalleryPageData("katrina")
+	if err != nil {
+		app.serverErrorResponse(w, r, err, "fetching images")
+		return
+	}
+	app.render(w, r, http.StatusOK, "katrina.html", pageData)
+}
+
+func (app *application) mediaHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract the file path from the URL
+	// Remove "/media/" prefix to get the relative path
+	filePath := strings.TrimPrefix(r.URL.Path, "/media/")
+
+	// Prevent directory traversal attacks
+	if strings.Contains(filePath, "..") {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	// Construct full file path
+	fullPath := filepath.Join(app.config.mediaDir, filePath)
+
+	// Check if file exists and is not a directory
+	fileInfo, err := os.Stat(fullPath)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	if fileInfo.IsDir() {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	// Set appropriate content type based on file extension
+	ext := strings.ToLower(filepath.Ext(fullPath))
+	switch ext {
+	case ".jpg", ".jpeg":
+		w.Header().Set("Content-Type", "image/jpeg")
+	case ".png":
+		w.Header().Set("Content-Type", "image/png")
+	case ".gif":
+		w.Header().Set("Content-Type", "image/gif")
+	case ".webp":
+		w.Header().Set("Content-Type", "image/webp")
+	default:
+		w.Header().Set("Content-Type", "application/octet-stream")
+	}
+
+	// Set cache headers for better performance
+	w.Header().Set("Cache-Control", "public, max-age=86400") // 1 day
+	w.Header().Set("ETag", fmt.Sprintf(`"%x-%x"`, fileInfo.ModTime().Unix(), fileInfo.Size()))
+
+	// Serve the file
+	http.ServeFile(w, r, fullPath)
 }
 
 func (app *application) adminPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -84,12 +207,12 @@ func (app *application) loginWihGoogleHandler(w http.ResponseWriter, r *http.Req
 
 	err := app.readJSONFromRequest(w, r, &input)
 	if err != nil {
-		app.badRequestResponse(w, r, fmt.Errorf("nice try"))
+		app.badRequestResponseJSON(w, r, fmt.Errorf("nice try"))
 		return
 	}
 
 	if strings.TrimSpace(input.Token) == "" {
-		app.badRequestResponse(w, r, fmt.Errorf("are you trying to login without jwt token? are you fr?"))
+		app.badRequestResponseJSON(w, r, fmt.Errorf("are you trying to login without jwt token? are you fr?"))
 		return
 	}
 
@@ -103,28 +226,28 @@ func (app *application) loginWihGoogleHandler(w http.ResponseWriter, r *http.Req
 	res, err := http.Get(fmt.Sprintf("https://oauth2.googleapis.com/tokeninfo?id_token=%s", input.Token))
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err, "google login api call")
+		app.serverErrorResponseJSON(w, r, err, "google login api call")
 		return
 	}
 
 	if res.StatusCode != 200 {
-		app.badRequestResponse(w, r, fmt.Errorf("nice try dude"))
+		app.badRequestResponseJSON(w, r, fmt.Errorf("nice try dude"))
 		return
 	}
 	err = app.readJSON(res.Body, &responseData)
 
 	if err != nil || res.StatusCode != 200 {
-		app.serverErrorResponse(w, r, err, "read json")
+		app.serverErrorResponseJSON(w, r, err, "read json")
 		return
 	}
 
 	if responseData.Aud != app.config.googleClientId {
-		app.badRequestResponse(w, r, fmt.Errorf("do you think you are smarter than me?"))
+		app.badRequestResponseJSON(w, r, fmt.Errorf("do you think you are smarter than me?"))
 		return
 	}
 
 	if !slices.Contains([]string{"accounts.google.com", "https://accounts.google.com"}, responseData.Iss) {
-		app.badRequestResponse(w, r, fmt.Errorf("is google drunk or are you doing something fishy?"))
+		app.badRequestResponseJSON(w, r, fmt.Errorf("is google drunk or are you doing something fishy?"))
 		return
 	}
 
@@ -134,21 +257,21 @@ func (app *application) loginWihGoogleHandler(w http.ResponseWriter, r *http.Req
 			user, err := app.users.Create(responseData.Email, responseData.Name)
 
 			if err != nil {
-				app.serverErrorResponse(w, r, err, "create user")
+				app.serverErrorResponseJSON(w, r, err, "create user")
 				return
 			}
 
 			err = app.loginUserId(r, user.ID)
 
 			if err != nil {
-				app.serverErrorResponse(w, r, err, "setting user id in session")
+				app.serverErrorResponseJSON(w, r, err, "setting user id in session")
 				return
 			}
 
 			app.writeJSON(w, 200, envelope{"account": user}, nil)
 			return
 		} else {
-			app.serverErrorResponse(w, r, err, "get user by email")
+			app.serverErrorResponseJSON(w, r, err, "get user by email")
 			return
 		}
 	}
@@ -156,7 +279,7 @@ func (app *application) loginWihGoogleHandler(w http.ResponseWriter, r *http.Req
 	err = app.loginUserId(r, user.ID)
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err, "setting user id in session")
+		app.serverErrorResponseJSON(w, r, err, "setting user id in session")
 		return
 	}
 

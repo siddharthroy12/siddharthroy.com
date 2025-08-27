@@ -12,5 +12,6 @@ require golang.org/x/crypto v0.41.0 // indirect
 require (
 	github.com/alexedwards/scs/postgresstore v0.0.0-20250417082927-ab20b3feb5e9
 	github.com/alexedwards/scs/v2 v2.9.0 // indirect
+	github.com/chai2010/webp v1.4.0
 	github.com/lib/pq v1.10.9
 )

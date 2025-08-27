@@ -2,18 +2,36 @@ package main
 
 import (
 	"bytes"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"runtime/debug"
 	"strings"
 
+	_ "image/jpeg" // Register the JPEG format
+	_ "image/png"  // Import for PNG decoding registration
+
+	"github.com/chai2010/webp"
 	"github.com/go-playground/form/v4"
 )
 
 type envelope map[string]any
+
+// generateRandomID generates a random hex string for file naming
+func generateRandomID(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
 
 func (app *application) render(w http.ResponseWriter, r *http.Request, status int, page string, pageData any) {
 	templateData := app.newTemplateData(r)
@@ -39,15 +57,6 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	buf.WriteTo(w)
 }
 
-func (app *application) isAuthenticated(r *http.Request) bool {
-	isAuthenticated, ok := r.Context().Value(isAuthenticatedContextKey).(bool)
-
-	if !ok {
-		return false
-	}
-	return isAuthenticated
-}
-
 func (app *application) serverError(w http.ResponseWriter, r *http.Request, err error) {
 	var (
 		method = r.Method
@@ -56,10 +65,6 @@ func (app *application) serverError(w http.ResponseWriter, r *http.Request, err 
 	)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	app.logger.Error(err.Error(), "method", method, "uri", uri, "trace", trace)
-}
-
-func (app *application) clientError(w http.ResponseWriter, status int) {
-	http.Error(w, http.StatusText(status), status)
 }
 
 func (app *application) decodePostForm(r *http.Request, dst any) error {
@@ -153,4 +158,122 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data envelo
 
 func (app *application) setFlash(r *http.Request, message string) {
 	app.sessionManager.Put(r.Context(), "flash", message)
+}
+
+func (app *application) uploadMedia(img image.Image, folder string, filename string) error {
+	// Create profile pictures directory path
+	profilePicturesDir := filepath.Join(app.config.mediaDir, folder)
+
+	// Ensure the profile pictures directory exists
+	if err := os.MkdirAll(profilePicturesDir, 0755); err != nil {
+		return fmt.Errorf("failed to create profile pictures directory: %w", err)
+	}
+
+	// Create the full file path
+	filePath := filepath.Join(profilePicturesDir, filename)
+
+	// Create the file
+	file, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to create file: %w", err)
+	}
+	defer file.Close()
+
+	// Encode and save as WebP
+	webpOptions := &webp.Options{
+		Lossless: false,
+		Quality:  90, // 0-100, higher is better quality
+	}
+	if err := webp.Encode(file, img, webpOptions); err != nil {
+		return fmt.Errorf("failed to encode WebP: %w", err)
+	}
+
+	return nil
+}
+
+// getImageURLs returns a list of URLs for images within the specified folder
+func (app *application) getImageURLs(folder string) ([]string, error) {
+	// Create the directory path
+	folderPath := filepath.Join(app.config.mediaDir, folder)
+
+	// Check if directory exists
+	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
+		return []string{}, nil
+	}
+
+	// Read directory contents
+	files, err := os.ReadDir(folderPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read directory: %w", err)
+	}
+
+	var imageURLs []string
+
+	// Iterate through files and collect image URLs
+	for _, file := range files {
+		if file.IsDir() {
+			continue // Skip directories
+		}
+
+		filename := file.Name()
+		imageURL := fmt.Sprintf("/media/%s/%s", folder, filename)
+		imageURLs = append(imageURLs, imageURL)
+
+	}
+
+	return imageURLs, nil
+}
+
+func (app *application) uploadMediaFromRequest(r *http.Request, folder string) error {
+	// Parse multipart form with 32MB max memory
+	err := r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		return err
+	}
+
+	// Get all files from the "images" field (note: changed from "image" to "images")
+	files := r.MultipartForm.File["images"]
+	if len(files) == 0 {
+		return fmt.Errorf("no files provided")
+	}
+
+	// Process each file
+	for _, fileHeader := range files {
+		// Open the file
+		file, err := fileHeader.Open()
+		if err != nil {
+			return fmt.Errorf("failed to open file %s: %w", fileHeader.Filename, err)
+		}
+
+		// Validate file size (limit to 10MB per file)
+		if fileHeader.Size > 10<<20 {
+			file.Close()
+			return fmt.Errorf("file %s exceeds 10MB limit", fileHeader.Filename)
+		}
+
+		// Decode the image (supports JPEG, PNG, GIF)
+		img, _, err := image.Decode(file)
+		if err != nil {
+			file.Close()
+			return fmt.Errorf("failed to decode image %s: %w", fileHeader.Filename, err)
+		}
+
+		// Generate random filename
+		randomID, err := generateRandomID(16)
+		if err != nil {
+			file.Close()
+			return fmt.Errorf("failed to generate random ID for %s: %w", fileHeader.Filename, err)
+		}
+		filename := fmt.Sprintf("%s.webp", randomID)
+
+		// Save the resized image to file
+		if err := app.uploadMedia(img, folder, filename); err != nil {
+			file.Close()
+			return fmt.Errorf("failed to upload %s: %w", fileHeader.Filename, err)
+		}
+
+		file.Close()
+	}
+
+	return nil
 }

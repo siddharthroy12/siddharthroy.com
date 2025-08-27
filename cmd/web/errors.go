@@ -29,34 +29,29 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 	}
 }
 
-func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+func (app *application) badRequestResponseJSON(w http.ResponseWriter, r *http.Request, err error) {
 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
 }
 
-func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
-	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
-}
-
-func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error, action string) {
+func (app *application) serverErrorResponseJSON(w http.ResponseWriter, r *http.Request, err error, action string) {
 	app.logError(r, err, action)
-
 	message := "this server encountered a problem and could not process your request"
 	app.errorResponse(w, r, http.StatusInternalServerError, message)
 }
 
-func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request, err error) {
-	app.errorResponse(w, r, http.StatusNotFound, err.Error())
+func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error, action string) {
+	app.logError(r, err, action)
+	app.render(w, r, http.StatusInternalServerError, "server-error.html", nil)
 }
 
-func (app *application) notFoundHandler(w http.ResponseWriter, r *http.Request) {
-	message := "the requested resouces could not be found"
-	app.errorResponse(w, r, http.StatusNotFound, message)
+func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, http.StatusNotFound, "404.html", nil)
 }
 
 func (app *application) pageNotFoundHandler(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, 200, "404.html", nil)
+	app.notFoundResponse(w, r)
 }
 
 func (app *application) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, 200, "method-not-allowed.html", nil)
+	app.render(w, r, http.StatusMethodNotAllowed, "method-not-allowed.html", nil)
 }

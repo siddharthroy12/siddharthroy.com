@@ -34,6 +34,7 @@ func (app *application) newTemplateData(r *http.Request) templateData {
 		Flash:           app.sessionManager.PopString(r.Context(), "flash"),
 		IsAuthenticated: app.isAuthenticated(r),
 		User:            user,
+		IsAdmin:         app.isAdmin(r),
 		GoogleClientId:  app.config.googleClientId,
 	}
 }

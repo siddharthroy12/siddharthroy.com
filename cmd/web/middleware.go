@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"siddharthroy.com/internal/models"
 )
 
 func (app *application) commonHeader(next http.Handler) http.Handler {
@@ -62,31 +60,9 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), isAuthenticatedContextKey, true)
+		ctx = context.WithValue(r.Context(), isAdminContextKey, user.Email == app.config.adminEmail)
 		ctx = context.WithValue(ctx, userContextkey, user)
 		r = r.WithContext(ctx)
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (app *application) getUserFromRequest(r *http.Request) (models.User, error) {
-	user, ok := r.Context().Value(userContextkey).(models.User)
-
-	if !ok {
-		return models.User{}, fmt.Errorf("user not logged in")
-	}
-	return user, nil
-}
-
-func (app *application) requireAuthenticated(next http.HandlerFunc) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		ok := app.isAuthenticated(r)
-
-		if !ok {
-			http.Redirect(w, r, "/not-authorized", http.StatusSeeOther)
-			return
-		}
 
 		next.ServeHTTP(w, r)
 	})

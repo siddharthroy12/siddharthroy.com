@@ -1,1 +1,11 @@
-{{define "title"}} Katrina {{end}} {{define "main"}} {{end}}
+{{define "title"}} Katrina {{end}} {{define "main"}}
+
+<div class="image-grid">
+  {{ range .Page.Images }}
+  <div class="grid-item">
+    <img src="{{.}}" alt="Nature landscape" />
+  </div>
+  {{ end }}
+</div>
+
+{{ template "image-upload" . }} {{end}}

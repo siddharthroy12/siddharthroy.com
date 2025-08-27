@@ -23,6 +23,8 @@ type config struct {
 	env            string
 	dsn            string
 	googleClientId string
+	mediaDir       string
+	adminEmail     string
 }
 
 type application struct {
@@ -40,6 +42,8 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.googleClientId, "gclientid", "", "Google client ID for oauth")
+	flag.StringVar(&cfg.adminEmail, "admin", "", "Email of admin")
+	flag.StringVar(&cfg.mediaDir, "mediadir", "./media", "Google client ID for oauth")
 	flag.StringVar(&cfg.dsn, "dsn", "", "Postgres DSN")
 	flag.Parse()
 
@@ -50,6 +54,12 @@ func main() {
 
 	if len(strings.TrimSpace(cfg.dsn)) == 0 {
 		println("dsn is not provided")
+		os.Exit(1)
+	}
+
+	// Ensure the profile pictures directory exists
+	if err := os.MkdirAll(cfg.mediaDir, 0755); err != nil {
+		fmt.Printf("failed to create media directory: %s", err.Error())
 		os.Exit(1)
 	}
 
