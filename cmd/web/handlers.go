@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"siddharthroy.com/internal/validator"
@@ -72,8 +71,13 @@ func (app *application) adminPageHandler(w http.ResponseWriter, r *http.Request)
 	app.render(w, r, http.StatusOK, "admin.html", data)
 }
 
+func (app *application) notAuthorizedHanlder(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+	data.Form = SignupForm{}
+	app.render(w, r, http.StatusOK, "not-authorized.html", data)
+}
+
 func (app *application) logoutHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "tmp")
 	err := app.sessionManager.RenewToken(r.Context())
 
 	if err != nil {

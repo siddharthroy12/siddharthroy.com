@@ -18,8 +18,11 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/katrina", app.petPicturesPageHandler)
 	router.HandlerFunc(http.MethodGet, "/sketches", app.drawingsPageHandler)
 	router.HandlerFunc(http.MethodGet, "/login", app.loginWihGoogleHandler)
+	router.HandlerFunc(http.MethodGet, "/not-authorized", app.notAuthorizedHanlder)
+	router.HandlerFunc(http.MethodGet, "/logout", app.requireAuthenticated(app.logoutHandler))
+	router.HandlerFunc(http.MethodGet, "/admin", app.requireAuthenticated(app.adminPageHandler))
 	router.NotFound = http.HandlerFunc(app.pageNotFoundHandler)
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedHandler)
 
-	return app.recoverPanic(app.saveAndLoadSession(router))
+	return app.recoverPanic(app.saveAndLoadSession(app.authenticate((router))))
 }

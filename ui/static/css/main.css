@@ -16,7 +16,7 @@ body,
 nav {
   margin-top: 10px;
   display: flex;
-  gap: 10px;
+  gap: 20px;
 }
 
 header h1 a {
@@ -51,7 +51,7 @@ header h1 a {
   /* Same as @media (prefers-color-scheme: light)
    * Please edit in both places!
    */
-  --bg-color: #f0efea;
+  --bg-color: #e4e0cd;
   --text-color: #141413;
   --border-color: #e6e4dd;
   --footnote-bg-color: rgba(0, 0, 0, 0.08);
@@ -96,7 +96,7 @@ header h1 a {
     /* Same as .dark-mode-off:root
      * Please edit in both places!
      */
-    --bg-color: #f0efea;
+    --bg-color: #e4e0cd;
     --text-color: #141413;
     --border-color: #e6e4dd;
     --footnote-bg-color: rgba(0, 0, 0, 0.08);
@@ -573,6 +573,9 @@ footer {
   text-align: center;
   color: var(--text-color);
   opacity: 0.7;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
 }
 
 .privacy-policy-link {
