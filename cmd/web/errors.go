@@ -48,6 +48,10 @@ func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request)
 	app.render(w, r, http.StatusNotFound, "404.html", nil)
 }
 
+func (app *application) notFoundResponseJSON(w http.ResponseWriter, r *http.Request) {
+	app.errorResponse(w, r, http.StatusBadRequest, fmt.Errorf("not found"))
+}
+
 func (app *application) pageNotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	app.notFoundResponse(w, r)
 }

@@ -1,11 +1,2 @@
-{{define "title"}} Sketches {{end}} {{define "main"}}
-
-<div class="image-grid">
-  {{ range .Page.Images }}
-  <div class="grid-item">
-    <img src="{{.}}" alt="Nature landscape" />
-  </div>
-  {{ end }}
-</div>
-
-{{ template "image-upload" . }} {{end}}
+{{define "title"}} Sketches {{end}} {{define "main"}} {{ template "image-grid"
+.}} {{ template "image-upload" . }} {{end}}

@@ -60,7 +60,7 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), isAuthenticatedContextKey, true)
-		ctx = context.WithValue(r.Context(), isAdminContextKey, user.Email == app.config.adminEmail)
+		ctx = context.WithValue(ctx, isAdminContextKey, user.Email == app.config.adminEmail)
 		ctx = context.WithValue(ctx, userContextkey, user)
 		r = r.WithContext(ctx)
 

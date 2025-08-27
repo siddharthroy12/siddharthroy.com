@@ -1,0 +1,16 @@
+{{ define "image-grid" }}
+
+<div class="image-grid">
+  {{ range .Page.Images }}
+  <div class="grid-item">
+    <img src="{{.}}" alt="Nature landscape" />
+    {{ if $.IsAdmin }}
+    <div class="image-actions">
+      <button onclick="deleteImage(`{{.}}`)">Delete</button>
+    </div>
+    {{ end }}
+  </div>
+  {{ end }}
+</div>
+
+{{end }}

@@ -130,6 +130,36 @@ func (app *application) uploadKatrinaPicHandler(w http.ResponseWriter, r *http.R
 	app.render(w, r, http.StatusOK, "katrina.html", pageData)
 }
 
+func (app *application) deleteMediaHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract the file path from the URL
+	// Remove "/media/" prefix to get the relative path
+	filePath := strings.TrimPrefix(r.URL.Path, "/media/")
+
+	// Prevent directory traversal attacks
+	if strings.Contains(filePath, "..") {
+		app.notFoundResponseJSON(w, r)
+		return
+	}
+
+	// Construct full file path
+	fullPath := filepath.Join(app.config.mediaDir, filePath)
+
+	// Check if file exists and is not a directory
+	_, err := os.Stat(fullPath)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	err = os.Remove(fullPath)
+
+	if err != nil {
+		app.serverErrorResponseJSON(w, r, err, "delete media")
+	}
+
+	app.writeJSON(w, http.StatusOK, envelope{"message": "media deleted"}, nil)
+}
+
 func (app *application) mediaHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the file path from the URL
 	// Remove "/media/" prefix to get the relative path
@@ -196,7 +226,14 @@ func (app *application) logoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.sessionManager.Remove(r.Context(), authenticatedUserIDContextKey)
 	app.setFlash(r, "You've been logged out successfully!")
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	referer := r.Header.Get("referer")
+
+	if referer != "" {
+		http.Redirect(w, r, referer, http.StatusSeeOther)
+	} else {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+
+	}
 }
 
 func (app *application) loginWihGoogleHandler(w http.ResponseWriter, r *http.Request) {
