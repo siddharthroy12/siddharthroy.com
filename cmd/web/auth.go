@@ -78,7 +78,7 @@ func (app *application) logoutHandler(w http.ResponseWriter, r *http.Request) {
 	err := app.sessionManager.RenewToken(r.Context())
 
 	if err != nil {
-		app.serverError(w, r, err)
+		app.serverErrorResponse(w, r, err, "reviewing token")
 	}
 
 	app.sessionManager.Remove(r.Context(), authenticatedUserIDContextKey)

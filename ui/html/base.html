@@ -1,4 +1,4 @@
-{{define "base"}}
+{{ define "description" }}{{ end }} {{define "base"}}
 <!DOCTYPE html>
 <html
   lang="en-us"
@@ -7,6 +7,11 @@
 >
   <head>
     <meta charset="UTF-8" />
+    <!-- META -->
+
+    <meta name="description" content='{{ template "description" . }}' />
+    <meta name="author" content="Siddharth Roy" />
+    <meta name="robots" content="index, follow" />
     <!-- CSS -->
     <link rel="stylesheet" href="/static/css/main.css" />
     <!-- Favicon -->

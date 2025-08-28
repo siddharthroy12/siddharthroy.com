@@ -18,7 +18,7 @@ func (app *application) logError(r *http.Request, err error, action string) {
 	app.logger.Error(err.Error(), "method", method, "uri", uri, "action", action)
 }
 
-func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
+func (app *application) errorResponseJSON(w http.ResponseWriter, r *http.Request, status int, message any) {
 	env := envelope{"error": message}
 
 	err := app.writeJSON(w, status, env, nil)
@@ -30,13 +30,17 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 }
 
 func (app *application) badRequestResponseJSON(w http.ResponseWriter, r *http.Request, err error) {
-	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+	app.errorResponseJSON(w, r, http.StatusBadRequest, err.Error())
+}
+
+func (app *application) clientErrorResponse(w http.ResponseWriter, status int) {
+	http.Error(w, http.StatusText(status), status)
 }
 
 func (app *application) serverErrorResponseJSON(w http.ResponseWriter, r *http.Request, err error, action string) {
 	app.logError(r, err, action)
 	message := "this server encountered a problem and could not process your request"
-	app.errorResponse(w, r, http.StatusInternalServerError, message)
+	app.errorResponseJSON(w, r, http.StatusInternalServerError, message)
 }
 
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error, action string) {
@@ -49,7 +53,7 @@ func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *application) notFoundResponseJSON(w http.ResponseWriter, r *http.Request) {
-	app.errorResponse(w, r, http.StatusBadRequest, fmt.Errorf("not found"))
+	app.errorResponseJSON(w, r, http.StatusBadRequest, fmt.Errorf("not found"))
 }
 
 func (app *application) pageNotFoundHandler(w http.ResponseWriter, r *http.Request) {

@@ -1,1 +1,11 @@
-{{define "title"}} Post {{end}} {{define "main"}} {{end}}
+{{define "title"}} {{ .Page.Post.Title }} {{end}} {{define "main"}}
+<article class="content-container">
+  <h1>{{.Page.Post.Title}}</h1>
+  <p class="author-date">
+    <time datetime="{{ .Page.Post.CreatedAt }}"
+      >{{ humanDate .Page.Post.CreatedAt }}</time
+    >
+  </p>
+  {{ .Page.Post.Content }}
+</article>
+{{end}}

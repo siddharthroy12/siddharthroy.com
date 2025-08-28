@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"strings"
 
 	_ "image/jpeg" // Register the JPEG format
@@ -20,6 +19,7 @@ import (
 
 	"github.com/chai2010/webp"
 	"github.com/go-playground/form/v4"
+	"github.com/julienschmidt/httprouter"
 )
 
 type envelope map[string]any
@@ -33,6 +33,11 @@ func generateRandomID(length int) (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
+func (app *application) readParam(r *http.Request, param string) string {
+	params := httprouter.ParamsFromContext(r.Context())
+	return params.ByName(param)
+}
+
 func (app *application) render(w http.ResponseWriter, r *http.Request, status int, page string, pageData any) {
 	templateData := app.newTemplateData(r)
 	templateData.Page = pageData
@@ -40,7 +45,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 
 	if !ok {
 		err := fmt.Errorf("this template %s does not exist", page)
-		app.serverError(w, r, err)
+		app.serverErrorResponse(w, r, err, "getting template")
 		return
 	}
 	var buf bytes.Buffer
@@ -48,23 +53,13 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	err := ts.ExecuteTemplate(&buf, "base", templateData)
 
 	if err != nil {
-		app.serverError(w, r, err)
+		app.serverErrorResponse(w, r, err, "executing template")
 		return
 	}
 
 	w.WriteHeader(status)
 
 	buf.WriteTo(w)
-}
-
-func (app *application) serverError(w http.ResponseWriter, r *http.Request, err error) {
-	var (
-		method = r.Method
-		uri    = r.URL.RequestURI()
-		trace  = string(debug.Stack())
-	)
-	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-	app.logger.Error(err.Error(), "method", method, "uri", uri, "trace", trace)
 }
 
 func (app *application) decodePostForm(r *http.Request, dst any) error {

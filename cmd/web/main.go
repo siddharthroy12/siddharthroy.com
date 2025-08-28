@@ -28,13 +28,14 @@ type config struct {
 }
 
 type application struct {
-	config         config
-	logger         *slog.Logger
-	templateCache  templateCache
-	sessionManager *scs.SessionManager
-	formDecorder   *form.Decoder
-	users          models.UserModel
-	posts          models.PostModel
+	config           config
+	logger           *slog.Logger
+	templateCache    templateCache
+	sessionManager   *scs.SessionManager
+	formDecorder     *form.Decoder
+	users            models.UserModel
+	posts            models.PostModel
+	markdownRenderer MarkdownRenderer
 }
 
 func main() {
@@ -78,6 +79,9 @@ func main() {
 	sessionManager.Lifetime = 12 * time.Hour
 
 	formDecorder := form.NewDecoder()
+	formDecorder.RegisterCustomTypeFunc(func(vals []string) (interface{}, error) {
+		return time.Parse("2006-01-02", vals[0])
+	}, time.Time{})
 
 	templateCache, err := newTemplateCache()
 
@@ -87,11 +91,12 @@ func main() {
 	}
 
 	app := application{
-		config:         cfg,
-		logger:         logger,
-		sessionManager: sessionManager,
-		formDecorder:   formDecorder,
-		templateCache:  templateCache,
+		config:           cfg,
+		logger:           logger,
+		sessionManager:   sessionManager,
+		formDecorder:     formDecorder,
+		templateCache:    templateCache,
+		markdownRenderer: createMarkdownRenderer(),
 		posts: models.PostModel{
 			DB: db,
 		},

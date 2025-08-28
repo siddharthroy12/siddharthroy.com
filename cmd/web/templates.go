@@ -22,11 +22,16 @@ type templateData struct {
 }
 
 func humanDate(t time.Time) string {
-	return t.Format("02 Jan 2006 at 15:04")
+	return t.Format("January 2, 2006")
+}
+
+func formatForInput(t time.Time) string {
+	return t.Format("2006-01-02")
 }
 
 var functions = template.FuncMap{
-	"humanDate": humanDate,
+	"humanDate":      humanDate,
+	"formatForInput": formatForInput,
 }
 
 func (app *application) newTemplateData(r *http.Request) templateData {

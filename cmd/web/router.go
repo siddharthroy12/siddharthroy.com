@@ -20,7 +20,15 @@ func (app *application) routes() http.Handler {
 
 	// Posts
 	router.HandlerFunc(http.MethodGet, "/posts", app.postsPageHandler)
-	router.HandlerFunc(http.MethodGet, "/create-post", app.requireAdmin(app.postsPageHandler))
+	router.HandlerFunc(http.MethodGet, "/post/:slug", app.postPageHandler)
+
+	router.HandlerFunc(http.MethodDelete, "/post/:slug", app.requireAdmin(app.deletePostHandler))
+
+	router.HandlerFunc(http.MethodGet, "/create-post", app.requireAdmin(app.createPostPageHandler))
+	router.HandlerFunc(http.MethodPost, "/create-post", app.requireAdmin(app.createPostHandler))
+
+	router.HandlerFunc(http.MethodGet, "/edit-post/:slug", app.requireAdmin(app.updatePostPageHandler))
+	router.HandlerFunc(http.MethodPost, "/edit-post/:slug", app.requireAdmin(app.updatePostHandler))
 
 	// Prefrences
 	router.HandlerFunc(http.MethodPut, "/toggledark", app.toggleThemePrefrenceHandler)
