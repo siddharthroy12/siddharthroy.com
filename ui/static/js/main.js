@@ -16,3 +16,21 @@ function deletePost(src) {
     });
   }
 }
+
+function makeImagesClickable() {
+  const images = document.getElementsByTagName("img");
+  for (let i = 0; i < images.length; i++) {
+    const image = images[i];
+    console.log(image);
+    image.style.cursor = "pointer";
+    image.onclick = function (e) {
+      // Open image in new tab
+      window.open(this.src, "_blank");
+    };
+  }
+}
+
+window.addEventListener("load", () => {
+  console.log("runn");
+  makeImagesClickable();
+});
