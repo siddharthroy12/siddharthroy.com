@@ -59,3 +59,7 @@ func (app *application) pageNotFoundHandler(w http.ResponseWriter, r *http.Reque
 func (app *application) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusMethodNotAllowed, "method-not-allowed.html", nil)
 }
+
+func (app *application) notAuthorizedHanlder(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, http.StatusOK, "not-authorized.html", nil)
+}

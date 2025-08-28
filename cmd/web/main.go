@@ -34,6 +34,7 @@ type application struct {
 	sessionManager *scs.SessionManager
 	formDecorder   *form.Decoder
 	users          models.UserModel
+	posts          models.PostModel
 }
 
 func main() {
@@ -91,6 +92,9 @@ func main() {
 		sessionManager: sessionManager,
 		formDecorder:   formDecorder,
 		templateCache:  templateCache,
+		posts: models.PostModel{
+			DB: db,
+		},
 		users: models.UserModel{
 			DB: db,
 		},
