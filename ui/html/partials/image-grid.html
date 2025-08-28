@@ -6,7 +6,9 @@
     <img src="{{.}}" alt="Nature landscape" />
     {{ if $.IsAdmin }}
     <div class="image-actions">
-      <button onclick="deleteImage(`{{.}}`)">Delete</button>
+      <button class="btn btn-fill" onclick="deleteImage(`{{.}}`)">
+        Delete
+      </button>
     </div>
     {{ end }}
   </div>

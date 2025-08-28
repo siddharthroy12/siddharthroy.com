@@ -9,12 +9,10 @@ import (
 
 func (app *application) routes() http.Handler {
 	router := httprouter.New()
-
 	fileServer := http.FileServerFS(ui.Files)
 
 	// Static files
-	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
-
+	router.Handler(http.MethodGet, "/static/*filepath", gzipMiddleware(http.HandlerFunc(fileServer.ServeHTTP)))
 	// Home page
 	router.HandlerFunc(http.MethodGet, "/", app.homePageHandler)
 
@@ -34,7 +32,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPut, "/toggledark", app.toggleThemePrefrenceHandler)
 
 	// Image gallery
-	router.HandlerFunc(http.MethodGet, "/media/*filepath", app.mediaHandler)
+	router.HandlerFunc(http.MethodGet, "/media/*filepath", gzipMiddleware(app.mediaHandler))
 	router.HandlerFunc(http.MethodDelete, "/media/*filepath", app.requireAdmin(app.deleteMediaHandler))
 	router.HandlerFunc(http.MethodPost, "/katrina", app.requireAdmin(app.uploadKatrinaPicHandler))
 	router.HandlerFunc(http.MethodGet, "/katrina", app.petPicturesPageHandler)
