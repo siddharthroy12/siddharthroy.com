@@ -32,7 +32,7 @@ COPY . .
 RUN make build
 
 # Expose port
-EXPOSE 4000
+EXPOSE 3000
 
 # Command to run the application
-CMD ./bin/web -env production -dsn ${DB_DSN} -gclientid ${GOOGLE_CLIENT_ID} -admin ${ADMIN_EMAIL} -mediadir ./media
+CMD ./bin/web -env production -dsn ${DB_DSN} -gclientid ${GOOGLE_CLIENT_ID} -admin ${ADMIN_EMAIL} -mediadir ./media -port 3000
