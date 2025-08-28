@@ -6,7 +6,7 @@ build:
 
 .PHONY: run
 run:
-	go run ./cmd/web -dsn ${DB_DSN} -gclientid ${GOOGLE_CLIENT_ID} -admin ${ADMIN_EMAIL}
+	go run ./cmd/web -dsn ${DB_DSN} -gclientid ${GOOGLE_CLIENT_ID} -admin ${ADMIN_EMAIL} -mediadir ./media
 
 .PHONY: psql
 psql:
