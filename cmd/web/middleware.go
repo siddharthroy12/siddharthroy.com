@@ -45,7 +45,7 @@ func (app *application) saveAndLoadSession(next http.Handler) http.Handler {
 }
 func (app *application) authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" && strings.Contains(r.URL.Path, "/static") {
+		if r.Method == "GET" && (strings.Contains(r.URL.Path, "/static") || strings.Contains(r.URL.Path, "/media")) {
 			next.ServeHTTP(w, r)
 			return
 		}
