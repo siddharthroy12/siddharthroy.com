@@ -6,6 +6,9 @@
   class="{{ if .IsDark }} dark-mode-on {{else}} dark-mode-off {{ end }}"
 >
   <head>
+    <link rel="dns-prefetch" href="//accounts.google.com" />
+    <link rel="preload" href="/static/img/favicon.ico" as="image" />
+
     <meta charset="UTF-8" />
     <!-- META -->
 
@@ -23,8 +26,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap"
+      as="style"
+    />
+    <link
       href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -68,11 +78,13 @@
     <main class="content-wrapper">{{ template "main" .}}</main>
     {{ template "footer" .}}
     <!-- Scripts -->
-    <script src="/static/js/main.js" type="text/javascript"></script>
-    <script src="/static/js/darkmode.js" type="text/javascript"></script>
-    <script src="/static/js/googlelogin.js" type="text/javascript"></script>
+    <!-- Move scripts to bottom and add defer/async -->
+    <script src="/static/js/main.js" defer></script>
+    <script src="/static/js/darkmode.js" defer></script>
+    <script src="/static/js/googlelogin.js" defer></script>
     <script
       src="https://accounts.google.com/gsi/client"
+      async
       onload="initGoogle()"
     ></script>
   </body>
