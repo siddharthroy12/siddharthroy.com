@@ -15,7 +15,7 @@ type HomePageData struct {
 func (app *application) homePageHandler(w http.ResponseWriter, r *http.Request) {
 	pageData := HomePageData{
 		Projects: []Project{
-			{Name: "Noa", Description: "A dynamically type interpreted language", Link: "https://github.com/siddharthroy12/noa"},
+			{Name: "Noa", Description: "Lightweight, embeddable scripting language", Link: "https://github.com/siddharthroy12/noa"},
 			{Name: "GlobeChat", Description: "Chats on world map", Link: "https://globechat.live"},
 			{Name: "Links Explorer", Description: "View Interactive graph of links", Link: "https://github.com/siddharthroy12/links_explorer"},
 			{Name: "Timebrew", Description: "A personal time tracker", Link: "https://github.com/siddharthroy12/timebrew"},
