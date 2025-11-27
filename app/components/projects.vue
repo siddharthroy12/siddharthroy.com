@@ -4,7 +4,7 @@ import { ref } from "vue";
 const projects = ref([
   {
     title: "Noa",
-    description: "Lightweight, embeddable scripting language",
+    description: "Lightweight scripting language in Rust.",
     link: "https://github.com/siddharthroy12/noa",
   },
   {
@@ -46,9 +46,9 @@ const projects = ref([
           :href="project.link"
         >
           <UCard :ui="{ body: '!p-[10px]' }" class="hover:bg-elevated">
-            <div class="flex gap-3">
+            <div class="flex gap-3 items-center">
               <div
-                class="w-[50px] h-[50px] rounded-2xl bg-primary flex items-center justify-center"
+                class="w-[50px] h-[50px] rounded-2xl bg-primary flex items-center justify-center shrink-0"
               >
                 <UIcon name="i-lucide-link" class="size-5 text-inverted" />
               </div>
