@@ -19,8 +19,8 @@ const items = ref([
 
 <template>
   <div class="flex flex-col w-full">
-    <h1 class="text-5xl font-extrabold py-2 relative w-full break-all">
-      EXPERIE<br />NCE
+    <h1 class="text-5xl font-extrabold py-2 relative pt-0 w-full break-all">
+      EXPERIE<br class="max-[950px]:hidden" />NCE
     </h1>
     <Card>
       <div class="overflow-y-scroll">

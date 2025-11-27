@@ -19,9 +19,9 @@ const items = [
         controls: 'absolute top-[20px] inset-x-20',
       }"
       :items="items"
-      class="w-full max-w-xs mx-auto"
+      class="w-full mx-auto"
     >
-      <img :src="item" width="320" height="320" class="rounded-lg" />
+      <img :src="item" width="100%" height="320" class="rounded-lg" />
     </UCarousel>
   </div>
 </template>

@@ -1,8 +1,8 @@
 <template>
-  <div class="flex flex-col gap-2">
-    <div class="flex gap-2">
+  <div class="flex flex-col gap-2 max-[722px]:justify-center">
+    <div class="flex gap-2 flex-wrap max-[722px]:justify-center">
       <h2
-        class="m-0 flex items-center justify-center p-2 max-lg:size-[3.4rem] lg:size-[3.8rem] max-sm:text-[1.7rem] lg:text-[2.2rem] max-lg:text-[1.7rem] font-bold leading-7 lg:leading-8 max-sm:hidden text-white dark:text-dark-4"
+        class="max-[950px]:hidden m-0 flex items-center justify-center p-2 size-[3.8rem] text-[2.2rem] font-bold leading-7 flex-wrap"
       >
         LIN<br />KS
       </h2>
@@ -15,7 +15,7 @@
           rel="noopener noreferrer"
         >
           <div class="w-[60px] h-[60px]">
-            <Card>
+            <Card fullHeight>
               <div
                 class="w-full h-full bg-default flex justify-center items-center"
               >
@@ -38,7 +38,7 @@
           rel="noopener noreferrer"
         >
           <div class="w-[60px] h-[60px]">
-            <Card>
+            <Card fullHeight>
               <div
                 class="w-full h-full bg-default flex justify-center items-center"
               >
@@ -48,9 +48,6 @@
           </div>
         </a>
       </UTooltip>
-    </div>
-
-    <div class="flex gap-2">
       <!-- Instagram -->
       <UTooltip :delay-duration="0" text="Instagram" :content="{ side: 'top' }">
         <a
@@ -59,7 +56,7 @@
           rel="noopener noreferrer"
         >
           <div class="w-[60px] h-[60px]">
-            <Card>
+            <Card fullHeight>
               <div
                 class="w-full h-full bg-default flex justify-center items-center"
               >
@@ -78,7 +75,7 @@
           rel="noopener noreferrer"
         >
           <div class="w-[60px] h-[60px]">
-            <Card>
+            <Card fullHeight>
               <div
                 class="w-full h-full bg-default flex justify-center items-center"
               >
@@ -97,7 +94,7 @@
           rel="noopener noreferrer"
         >
           <div class="w-[60px] h-[60px]">
-            <Card>
+            <Card fullHeight>
               <div
                 class="w-full h-full bg-default flex justify-center items-center"
               >
