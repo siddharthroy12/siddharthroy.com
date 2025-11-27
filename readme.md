@@ -1,20 +1,75 @@
-This repo contains the code for [siddharthroy.com](https://siddharthroy.com)
+# Nuxt Minimal Starter
 
-![Screenshot](./screenshot.png)
+Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 
-## How to run
+## Setup
 
-1. Install go-lang, make, and postgresql
-2. Create a user and db for this project
-3. Create .envrc file and fill in these fields
-   ```
-   export DB_DSN=
-   export GOOGLE_CLIENT_ID=
-   export ADMIN_EMAIL=
-   ```
-4. Exmple DSN
-   ```
-   postgres://siddharthroy:pass@localhost/mywebsite?sslmode=disable
-   ```
-5. Run `make migrate_up` to run the migrations
-6. Run `makr run` to run the app
+Make sure to install dependencies:
+
+```bash
+# npm
+npm install
+
+# pnpm
+pnpm install
+
+# yarn
+yarn install
+
+# bun
+bun install
+```
+
+## Development Server
+
+Start the development server on `http://localhost:3000`:
+
+```bash
+# npm
+npm run dev
+
+# pnpm
+pnpm dev
+
+# yarn
+yarn dev
+
+# bun
+bun run dev
+```
+
+## Production
+
+Build the application for production:
+
+```bash
+# npm
+npm run build
+
+# pnpm
+pnpm build
+
+# yarn
+yarn build
+
+# bun
+bun run build
+```
+
+Locally preview production build:
+
+```bash
+# npm
+npm run preview
+
+# pnpm
+pnpm preview
+
+# yarn
+yarn preview
+
+# bun
+bun run preview
+```
+
+Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
