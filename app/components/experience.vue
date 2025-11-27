@@ -1,17 +1,17 @@
 <script setup lang="ts">
 const items = ref([
   {
-    date: "Mar 15, 2025",
-    title: "Project Kickoff",
+    date: "Apr 15 2024 - Present",
+    title: "Algo One",
     description:
-      "Kicked off the project with team alignment. Set up project milestones and allocated resources.",
+      "Built frontends for various clients as well as a full-stack application for proctored test and mobile app for GQFinXray.",
     icon: "i-lucide-code",
   },
   {
-    date: "Mar 22 2025",
-    title: "Design Phase",
+    date: "October 25, 2022 - 2024",
+    title: "Everlytics",
     description:
-      "User research and design workshops. Created wireframes and prototypes for user testing.",
+      "Worked as an intern frontend developer. Built dashboards for internal and client projects with E2E automated testing.",
     icon: "i-lucide-code",
   },
 ]);

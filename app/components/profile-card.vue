@@ -1,3 +1,24 @@
+<script setup>
+import { ref, onMounted, onUnmounted } from "vue";
+const availableForWork = ref(false);
+const currentTime = ref("");
+
+const updateTime = () => {
+  currentTime.value = new Date().toLocaleString();
+};
+
+let interval;
+
+onMounted(() => {
+  updateTime();
+  interval = setInterval(updateTime, 1000);
+});
+
+onUnmounted(() => {
+  clearInterval(interval);
+});
+</script>
+
 <template>
   <Card>
     <div
@@ -34,16 +55,23 @@
         <div
           class="font-mono flex justify-end items-center gap-1 text-sm text-zinc-400"
         >
-          <div class="size-1.5 rounded-full bg-[#ff5c5c]"></div>
-          <p class="text-xs">Not Available for work</p>
+          <template v-if="availableForWork">
+            <div class="size-1.5 rounded-full bg-[#81ff5c]"></div>
+            <p class="text-xs">Available for work</p>
+          </template>
+          <template v-if="!availableForWork">
+            <div class="size-1.5 rounded-full bg-[#ff5c5c]"></div>
+            <p class="text-xs">Not Available for work</p>
+          </template>
         </div>
-        <div class="flex items-center justify-center">
+        <div class="flex items-center justify-end">
           <time
             class="text-[10px] font-light text-zinc-500 font-mono tabular-nums tracking-wider"
-            datetime="2025-11-26T13:42:16.291Z"
+            :datetime="new Date().toISOString()"
             aria-label="Current time"
-            >11/26/2025, 07:12:16 PM</time
           >
+            {{ currentTime }}
+          </time>
         </div>
       </div>
       <div class="absolute bottom-5 left-5 max-sm:hidden">
