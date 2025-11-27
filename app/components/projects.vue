@@ -20,7 +20,7 @@ const projects = ref([
   {
     title: "Gravity sandbox",
     description: "2D Newtonian gravity simulator",
-    link: "https://github.com/siddharthroy12/noa",
+    link: "https://gravity-sandbox.netlify.app/",
   },
   {
     title: "Rockets",

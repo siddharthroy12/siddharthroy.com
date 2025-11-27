@@ -51,7 +51,7 @@
       <!-- Instagram -->
       <UTooltip :delay-duration="0" text="Instagram" :content="{ side: 'top' }">
         <a
-          href="https://x.com/cybrchad"
+          href="https://www.instagram.com/cybrchad/"
           target="_blank"
           rel="noopener noreferrer"
         >
