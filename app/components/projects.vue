@@ -6,26 +6,31 @@ const projects = ref([
     title: "Noa",
     description: "Lightweight scripting language in Rust.",
     link: "https://github.com/siddharthroy12/noa",
+    image: "/appicons/noa.png",
   },
   {
     title: "GlobeChat",
     description: "Chats on world map",
     link: "https://globechat.live/",
+    image: "/appicons/globechat.png",
   },
   {
     title: "Timebrew",
     description: "A personal time tracker",
     link: "https://github.com/siddharthroy12/timebrew",
+    image: "/appicons/timebrew.png",
   },
   {
     title: "Gravity sandbox",
     description: "2D Newtonian gravity simulator",
     link: "https://gravity-sandbox.netlify.app/",
+    image: "/appicons/gravitysandbox.png",
   },
   {
     title: "Rockets",
     description: "Dodge rockets in retro style",
     link: "https://www.lexaloffle.com/bbs/?pid=111184",
+    image: "/appicons/rockets.png",
   },
 ]);
 </script>
@@ -50,7 +55,7 @@ const projects = ref([
               <div
                 class="w-[50px] h-[50px] rounded-2xl bg-primary flex items-center justify-center shrink-0"
               >
-                <UIcon name="i-lucide-link" class="size-5 text-inverted" />
+                <img :src="project.image" />
               </div>
               <div>
                 <p class="text-highlighted font-semibold">
