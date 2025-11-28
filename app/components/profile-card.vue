@@ -3,6 +3,12 @@ import { ref, onMounted, onUnmounted } from "vue";
 const availableForWork = ref(false);
 const currentTime = ref("");
 
+const { data: siteStats } = await useFetch(
+  "https://librecounter.org/siddharthroy.com/siteStats",
+);
+
+const visitCount = computed(() => siteStats.value?.total ?? 0);
+
 const updateTime = () => {
   currentTime.value = new Date().toLocaleString();
 };
@@ -39,8 +45,11 @@ onUnmounted(() => {
           />
           <div class="">
             <p class="font-bold text-lg">Siddharth Roy.</p>
-            <p class="text-md font-mono text-zinc-400/80">@cyberchad</p>
+            <p class="text-md font-mono text-zinc-400/80">@cybrchad</p>
           </div>
+        </div>
+        <div>
+          <UBadge color="neutral" variant="soft">{{ visitCount }} Views</UBadge>
         </div>
       </div>
       <div class="flex flex-col gap-1 overflow-hidden">
