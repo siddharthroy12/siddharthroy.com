@@ -14,7 +14,9 @@ import Fidget from "~/components/fidget.vue";
       <div class="max-[950px]:hidden flex flex-col gap-3 w-full">
         <Experience />
       </div>
-      <div class="flex flex-col gap-3 w-[486px] shrink-0">
+      <div
+        class="flex flex-col gap-3 max-[950px]:w-[416px] min-[950px]:w-[486px] shrink-0"
+      >
         <ProfileCard />
         <Projects />
       </div>
