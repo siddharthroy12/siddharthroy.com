@@ -1,30 +1,20 @@
-# Build Stage 1
+# Build the static Vite output in an isolated Node environment.
 FROM node:22-alpine AS build
+
 WORKDIR /app
 
-# Copy only package.json and package-lock.json first (for caching)
 COPY package.json package-lock.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm ci --omit=dev=false
-
-# Copy the entire project
 COPY . ./
-
-# Build the project
 RUN npm run build
 
-# Build Stage 2
-FROM node:22-alpine
-WORKDIR /app
+# Serve only the pre-built static site; no Node process runs in production.
+FROM nginx:1.27-alpine AS production
 
-# Copy the built output only
-COPY --from=build /app/.output/ ./
-
-# Change the port and host
-ENV PORT=3000
-ENV HOST=0.0.0.0
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 3000
 
-CMD ["node", "/app/server/index.mjs"]
+CMD ["nginx", "-g", "daemon off;"]
