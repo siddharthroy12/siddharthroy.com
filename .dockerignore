@@ -2,9 +2,8 @@
 .gitignore
 .dockerignore
 node_modules
+.next
 dist
-dist-ssr
-dist-server
 *.log
 .DS_Store
 .claude

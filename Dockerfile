@@ -1,20 +1,25 @@
-# Build the static Vite output in an isolated Node environment.
-FROM node:22-alpine AS build
+# Install deps and build the Next.js standalone output.
+FROM oven/bun:1-alpine AS build
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
 COPY . ./
-RUN npm run build
+RUN bun run build
 
-# Serve only the pre-built static site; no Node process runs in production.
-FROM nginx:1.27-alpine AS production
+# Run the standalone server on a minimal Node runtime.
+FROM node:22-alpine AS production
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
+
+COPY --from=build /app/public ./public
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
 
 EXPOSE 3000
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server.js"]

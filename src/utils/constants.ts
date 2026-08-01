@@ -27,6 +27,7 @@ export type Social = {
 export const SOCIALS: readonly Social[] = [
   { label: "GitHub", href: "https://github.com/siddharthroy12" },
   { label: "LinkedIn", href: "https://www.linkedin.com/in/reactoverflow/" },
+  { label: "X", href: "https://x.com/cybrchad" },
 ];
 
 export const WORK_ITEMS: readonly WorkItem[] = [
@@ -77,5 +78,12 @@ export const PROJECTS: readonly Project[] = [
     role: "creator",
     about: "a Japanese reading assistant that translates and summarizes text",
     url: "https://github.com/siddharthroy12/nihongobuddy",
+  },
+  {
+    name: "Graphite",
+    slug: "graphite",
+    role: "creator",
+    about: "a local-only, Notion-style workspace for the desktop",
+    url: "https://github.com/siddharthroy12/graphite",
   },
 ];
