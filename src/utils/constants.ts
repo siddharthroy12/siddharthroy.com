@@ -52,13 +52,6 @@ export const WORK_ITEMS: readonly WorkItem[] = [
 
 export const PROJECTS: readonly Project[] = [
   {
-    name: "Noa",
-    slug: "noa",
-    role: "creator",
-    about: "a lightweight scripting language written in Rust",
-    url: "https://github.com/siddharthroy12/noa",
-  },
-  {
     name: "Gravity sandbox",
     slug: "gravity-sandbox",
     role: "creator",
