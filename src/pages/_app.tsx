@@ -1,5 +1,6 @@
 import AnimatedText from "@/components/animated-text";
 import { GitHubIcon, LinkedInIcon, XIcon } from "@/components/icons";
+import PredictiveArc from "@/components/predictive-arc";
 import { PROJECTS, SOCIALS, WORK_ITEMS } from "@/utils/constants";
 import "@/globals.css";
 import { Analytics } from "@vercel/analytics/next";
@@ -137,7 +138,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
   }
 
   return (
-    <main className="flex h-full w-full overflow-hidden">
+    <main className="relative flex min-h-dvh w-full overflow-hidden bg-[#050508] text-stone-100">
       <Head>
         <title>{SITE_TITLE}</title>
         <meta name="description" content={SITE_DESCRIPTION} />
@@ -162,14 +163,20 @@ export default function App({ Component, pageProps, router }: AppProps) {
         />
       </Head>
 
-      <motion.div className="flex flex-1 bg-stone-200">
+      <PredictiveArc />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_16%,transparent_0%,rgba(5,5,8,0.28)_40%,rgba(5,5,8,0.82)_100%)]" />
+      <motion.div className="relative z-10 flex flex-1">
         <div className="flex-1 flex justify-center px-6 py-[15vh] overflow-y-auto">
           <LayoutGroup>
             <motion.div
               layout
-              className="relative flex flex-col items-start w-full md:w-auto max-w-md md:max-w-none"
+              className="relative isolate flex flex-col items-start w-full md:w-auto max-w-md md:max-w-none"
               transition={NAME_WRAPPER_SPRING_CONFIG}
             >
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-x-8 -inset-y-12 -z-10 rounded-[3rem] bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.98)_0%,rgba(0,0,0,0.9)_42%,rgba(0,0,0,0.52)_64%,transparent_80%)] blur-2xl sm:-inset-x-16"
+              />
               <motion.h1
                 layout
                 ref={ref}
@@ -194,7 +201,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={social.label}
-                        className="text-stone-400 hover:text-stone-600 transition-colors"
+                        className="text-zinc-400 hover:text-violet-100 transition-colors"
                         initial={SOCIAL_ANIMATION.initial}
                         animate={SOCIAL_ANIMATION.animate}
                         transition={{
@@ -206,21 +213,6 @@ export default function App({ Component, pageProps, router }: AppProps) {
                       </motion.a>
                     ))}
                   </div>
-
-                  <motion.a
-                    href="https://looskie.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-stone-400 hover:text-stone-600 transition-colors mt-2"
-                    initial={SOCIAL_ANIMATION.initial}
-                    animate={SOCIAL_ANIMATION.animate}
-                    transition={{
-                      ...SOCIAL_ANIMATION.transition,
-                      delay: 0.6,
-                    }}
-                  >
-                    design by looskie ↗
-                  </motion.a>
 
                   <Component {...pageProps} />
                 </>

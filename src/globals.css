@@ -173,5 +173,10 @@ h3 {
 }
 
 html {
-  @apply bg-stone-200!;
+  @apply bg-[#050508]!;
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-[#050508] text-stone-100;
 }
