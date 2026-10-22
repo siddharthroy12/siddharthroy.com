@@ -164,6 +164,9 @@
 @theme {
   --font-sans: "Redaction", sans-serif;
   --font-heading: "Redaction 50", sans-serif;
+  --color-background: #09090b;
+  --color-border: #27272a;
+  --color-line: color-mix(in oklab, #27272a 64%, #09090b);
 }
 
 h1,
@@ -173,10 +176,63 @@ h3 {
 }
 
 html {
-  @apply bg-[#050508]!;
+  @apply bg-background!;
   color-scheme: dark;
 }
 
 body {
-  @apply bg-[#050508] text-stone-100;
+  @apply bg-background text-stone-100;
+}
+
+/* blueprint-style layout lines, after chanhdai.com */
+.screen-line-top,
+.screen-line-bottom,
+.stripe-divider {
+  position: relative;
+}
+
+.screen-line-top::before,
+.screen-line-bottom::after {
+  content: "";
+  position: absolute;
+  left: -100vw;
+  z-index: -1;
+  width: 200vw;
+  height: 1px;
+  background-color: var(--color-line);
+}
+
+.screen-line-top::before {
+  top: 0;
+}
+
+.screen-line-bottom::after {
+  bottom: 0;
+}
+
+.screen-line-top-border::before,
+.screen-line-bottom-border::after {
+  background-color: var(--color-border);
+}
+
+.stripe-divider {
+  height: 2rem;
+}
+
+.stripe-divider::before {
+  content: "";
+  position: absolute;
+  left: -100vw;
+  z-index: -1;
+  width: 200vw;
+  height: 100%;
+  --pattern-foreground: color-mix(in oklab, var(--color-line) 56%, transparent);
+  background-image: repeating-linear-gradient(
+    315deg,
+    var(--pattern-foreground) 0,
+    var(--pattern-foreground) 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
 }

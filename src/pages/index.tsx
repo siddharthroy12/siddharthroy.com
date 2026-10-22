@@ -1,13 +1,13 @@
+import {
+  type MotionNodeAnimationOptions,
+  motion,
+  type Transition,
+} from "motion/react";
+import { memo, useCallback, useState } from "react";
 import AnimatedText from "@/components/animated-text";
 import HoverPreview from "@/components/hover-preview";
 import { PROJECTS, WORK_ITEMS } from "@/utils/constants";
 import getPreviewUrl from "@/utils/get-preview-url";
-import {
-  motion,
-  type MotionNodeAnimationOptions,
-  type Transition,
-} from "motion/react";
-import { memo, useCallback, useState } from "react";
 
 type HoverState = {
   id: string;
@@ -95,7 +95,7 @@ const ItemRow = memo(function ItemRow({
         {isHovered ? (
           <motion.div
             layoutId={layoutId}
-            className="absolute inset-0 bg-violet-300/10 border border-violet-200/30 rounded-md"
+            className="absolute inset-0 bg-white/8 border border-white/20 rounded-md"
             transition={ITEM_HOVER_TRANSITION}
           />
         ) : null}
@@ -146,59 +146,72 @@ export default function Home() {
 
   return (
     <>
-      <AnimatedText
-        className="text-xl mt-4 font-bold"
-        element="h2"
-        text="work"
-        artificialDelay={0.3}
-      />
-
-      <div className="flex flex-col gap-3 mt-3" onMouseLeave={clearWorkHover}>
-        {WORK_ITEMS.map((item, i) => (
-          <ItemRow
-            key={item.slug}
-            id={item.company}
-            label={item.company}
-            role={item.role}
-            about={item.about}
-            date={item.date}
-            url={item.url}
-            isHovered={hoveredWork?.id === item.company}
-            layoutId="work-hover"
-            delay={0.5 + i * 0.15}
-            previewUrl={WORK_PREVIEW_URLS.get(item.slug) ?? ""}
-            onHover={handleWorkHover}
+      <section className="screen-line-top screen-line-bottom">
+        <header className="screen-line-bottom px-4 py-2">
+          <AnimatedText
+            className="text-xl font-bold"
+            element="h2"
+            text="work"
+            artificialDelay={0.3}
           />
-        ))}
-      </div>
+        </header>
 
-      <AnimatedText
-        className="text-xl mt-4 font-bold"
-        element="h2"
-        text="projects"
-        artificialDelay={0.3}
-      />
+        <div
+          className="flex flex-col gap-3 px-4 py-4"
+          onMouseLeave={clearWorkHover}
+        >
+          {WORK_ITEMS.map((item, i) => (
+            <ItemRow
+              key={item.slug}
+              id={item.company}
+              label={item.company}
+              role={item.role}
+              about={item.about}
+              date={item.date}
+              url={item.url}
+              isHovered={hoveredWork?.id === item.company}
+              layoutId="work-hover"
+              delay={0.5 + i * 0.15}
+              previewUrl={WORK_PREVIEW_URLS.get(item.slug) ?? ""}
+              onHover={handleWorkHover}
+            />
+          ))}
+        </div>
+      </section>
 
-      <div
-        className="flex flex-col gap-3 mt-3"
-        onMouseLeave={clearProjectHover}
-      >
-        {PROJECTS.map((project, i) => (
-          <ItemRow
-            key={project.slug}
-            id={project.name}
-            label={project.name}
-            role={project.role}
-            about={project.about}
-            url={project.url}
-            isHovered={hoveredProject?.id === project.name}
-            layoutId="project-hover"
-            delay={0.5 + i * 0.15}
-            previewUrl={PROJECT_PREVIEW_URLS.get(project.slug) ?? ""}
-            onHover={handleProjectHover}
+      <div className="stripe-divider" />
+
+      <section className="screen-line-top screen-line-bottom screen-line-bottom-border">
+        <header className="screen-line-bottom px-4 py-2">
+          <AnimatedText
+            className="text-xl font-bold"
+            element="h2"
+            text="projects"
+            artificialDelay={0.3}
           />
-        ))}
-      </div>
+        </header>
+
+        <div
+          className="flex flex-col gap-3 px-4 py-4"
+          onMouseLeave={clearProjectHover}
+        >
+          {PROJECTS.map((project, i) => (
+            <ItemRow
+              key={project.slug}
+              id={project.name}
+              label={project.name}
+              role={project.role}
+              about={project.about}
+              url={project.url}
+              isHovered={hoveredProject?.id === project.name}
+              layoutId="project-hover"
+              delay={0.5 + i * 0.15}
+              previewUrl={PROJECT_PREVIEW_URLS.get(project.slug) ?? ""}
+              onHover={handleProjectHover}
+            />
+          ))}
+        </div>
+      </section>
 
       <div className="hidden md:block">
         <HoverPreview

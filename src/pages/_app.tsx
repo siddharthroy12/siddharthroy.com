@@ -1,13 +1,13 @@
 import AnimatedText from "@/components/animated-text";
 import { GitHubIcon, LinkedInIcon, XIcon } from "@/components/icons";
-import PredictiveArc from "@/components/predictive-arc";
+import InteractiveDots from "@/components/interactive-dots";
 import { PROJECTS, SOCIALS, WORK_ITEMS } from "@/utils/constants";
 import "@/globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import {
   LayoutGroup,
-  motion,
   type MotionNodeAnimationOptions,
+  motion,
   type Transition,
   useMotionValue,
   useMotionValueEvent,
@@ -138,7 +138,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
   }
 
   return (
-    <main className="relative flex min-h-dvh w-full overflow-hidden bg-[#050508] text-stone-100">
+    <main className="relative flex min-h-dvh w-full overflow-hidden bg-background text-stone-100">
       <Head>
         <title>{SITE_TITLE}</title>
         <meta name="description" content={SITE_DESCRIPTION} />
@@ -163,58 +163,81 @@ export default function App({ Component, pageProps, router }: AppProps) {
         />
       </Head>
 
-      <PredictiveArc />
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_16%,transparent_0%,rgba(5,5,8,0.28)_40%,rgba(5,5,8,0.82)_100%)]" />
+      {/* full-height column rules, aligned with the content column below */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 px-2"
+      >
+        <div className="mx-auto h-full w-full max-w-[40rem] border-x border-border" />
+      </div>
       <motion.div className="relative z-10 flex flex-1">
-        <div className="flex-1 flex justify-center px-6 py-[15vh] overflow-y-auto">
+        <div className="flex-1 flex justify-center px-2 py-[10vh] overflow-x-hidden overflow-y-auto">
           <LayoutGroup>
             <motion.div
               layout
-              className="relative isolate flex flex-col items-start w-full md:w-auto max-w-md md:max-w-none"
+              className={
+                expanded
+                  ? "relative isolate flex w-full max-w-[40rem] flex-col items-stretch"
+                  : "relative isolate flex flex-col items-start"
+              }
               transition={NAME_WRAPPER_SPRING_CONFIG}
             >
+              {expanded ? (
+                <InteractiveDots className="screen-line-top h-24 touch-none sm:h-32" />
+              ) : null}
               <div
-                aria-hidden="true"
-                className="pointer-events-none absolute -inset-x-8 -inset-y-12 -z-10 rounded-[3rem] bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.98)_0%,rgba(0,0,0,0.9)_42%,rgba(0,0,0,0.52)_64%,transparent_80%)] blur-2xl sm:-inset-x-16"
-              />
-              <motion.h1
-                layout
-                ref={ref}
-                className="font-bold whitespace-nowrap will-change-transform"
-                style={{ fontSize: fontSizeRem }}
+                className={
+                  expanded
+                    ? "screen-line-top screen-line-top-border screen-line-bottom px-4 pt-6 pb-5"
+                    : "px-4"
+                }
               >
-                siddharth
-              </motion.h1>
+                <motion.h1
+                  layout
+                  ref={ref}
+                  className="font-bold whitespace-nowrap will-change-transform"
+                  style={{ fontSize: fontSizeRem }}
+                >
+                  siddharth
+                </motion.h1>
+
+                {expanded ? (
+                  <>
+                    <AnimatedText
+                      text="software engineer and gamer"
+                      element="p"
+                    />
+
+                    <div className="flex items-center gap-2 mt-1">
+                      {SOCIALS.map((social, i) => (
+                        <motion.a
+                          key={social.label}
+                          href={social.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={social.label}
+                          className="text-zinc-400 hover:text-violet-100 transition-colors"
+                          initial={SOCIAL_ANIMATION.initial}
+                          animate={SOCIAL_ANIMATION.animate}
+                          transition={{
+                            ...SOCIAL_ANIMATION.transition,
+                            delay: 0.3 + i * 0.1,
+                          }}
+                        >
+                          {SOCIAL_ICONS[social.label]}
+                        </motion.a>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+              </div>
 
               {expanded ? (
                 <>
-                  <AnimatedText
-                    text="software engineer and gamer"
-                    element="p"
-                  />
-
-                  <div className="flex items-center gap-2 mt-1">
-                    {SOCIALS.map((social, i) => (
-                      <motion.a
-                        key={social.label}
-                        href={social.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={social.label}
-                        className="text-zinc-400 hover:text-violet-100 transition-colors"
-                        initial={SOCIAL_ANIMATION.initial}
-                        animate={SOCIAL_ANIMATION.animate}
-                        transition={{
-                          ...SOCIAL_ANIMATION.transition,
-                          delay: 0.3 + i * 0.1,
-                        }}
-                      >
-                        {SOCIAL_ICONS[social.label]}
-                      </motion.a>
-                    ))}
-                  </div>
-
+                  <div className="stripe-divider" />
                   <Component {...pageProps} />
+                  <div className="stripe-divider screen-line-bottom" />
+                  <InteractiveDots className="screen-line-bottom h-24 touch-none sm:h-32" />
                 </>
               ) : null}
 
