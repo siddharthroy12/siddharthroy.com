@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { playBlip } from "@/utils/sound";
 
 const SPACING = 9;
 const DOT_SIZE = 2;
@@ -187,6 +188,7 @@ export default function InteractiveDots({ className }: Props) {
       setPointer(e.clientX, e.clientY);
       ripples.push({ x: pointer.x, y: pointer.y, time: 0 });
       if (ripples.length > 8) ripples.splice(0, ripples.length - 8);
+      playBlip();
     };
     const onLeave = () => {
       pointer.inside = false;

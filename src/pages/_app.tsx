@@ -1,6 +1,8 @@
 import AnimatedText from "@/components/animated-text";
 import { GitHubIcon, LinkedInIcon, XIcon } from "@/components/icons";
 import InteractiveDots from "@/components/interactive-dots";
+import SoundToggle from "@/components/sound-toggle";
+import StatusLine from "@/components/status-line";
 import { PROJECTS, SOCIALS, WORK_ITEMS } from "@/utils/constants";
 import "@/globals.css";
 import { Analytics } from "@vercel/analytics/next";
@@ -16,7 +18,7 @@ import {
 } from "motion/react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const NAME_WRAPPER_SPRING_CONFIG = {
   type: "spring",
@@ -128,6 +130,51 @@ export default function App({ Component, pageProps, router }: AppProps) {
     progress.set(LAST_STEP);
   }, [progress]);
 
+  // Hovering the settled name flickers it through a few other cuts of the
+  // typeface before landing back on the final one.
+  const glitchTimers = useRef<number[]>([]);
+  const glitchName = useCallback(() => {
+    const heading = ref.current;
+    if (!heading || !expanded) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (glitchTimers.current.length > 0) return;
+
+    const applyStep = (i: number) => {
+      heading.style.setProperty(
+        "font-family",
+        `"${ANIMATION_STEPS[i].font}"`,
+        "important",
+      );
+      heading.style.setProperty(
+        "font-weight",
+        String(ANIMATION_STEPS[i].weight),
+        "important",
+      );
+    };
+
+    const sequence: number[] = [];
+    while (sequence.length < 4) {
+      const i = Math.floor(Math.random() * LAST_STEP);
+      if (sequence[sequence.length - 1] !== i) sequence.push(i);
+    }
+    sequence.push(LAST_STEP);
+
+    sequence.forEach((step, n) => {
+      const id = window.setTimeout(() => {
+        applyStep(step);
+        if (n === sequence.length - 1) glitchTimers.current = [];
+      }, n * 70);
+      glitchTimers.current.push(id);
+    });
+  }, [expanded]);
+
+  useEffect(
+    () => () => {
+      for (const id of glitchTimers.current) window.clearTimeout(id);
+    },
+    [],
+  );
+
   if (router.pathname === "/404") {
     return (
       <>
@@ -197,6 +244,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
                   ref={ref}
                   className="font-bold whitespace-nowrap will-change-transform"
                   style={{ fontSize: fontSizeRem }}
+                  onPointerEnter={glitchName}
                 >
                   siddharth
                 </motion.h1>
@@ -227,7 +275,29 @@ export default function App({ Component, pageProps, router }: AppProps) {
                           {SOCIAL_ICONS[social.label]}
                         </motion.a>
                       ))}
+                      <motion.span
+                        className="flex"
+                        initial={SOCIAL_ANIMATION.initial}
+                        animate={SOCIAL_ANIMATION.animate}
+                        transition={{
+                          ...SOCIAL_ANIMATION.transition,
+                          delay: 0.3 + SOCIALS.length * 0.1,
+                        }}
+                      >
+                        <SoundToggle className="text-zinc-400 hover:text-violet-100 transition-colors cursor-pointer" />
+                      </motion.span>
                     </div>
+
+                    <motion.div
+                      initial={SOCIAL_ANIMATION.initial}
+                      animate={SOCIAL_ANIMATION.animate}
+                      transition={{
+                        ...SOCIAL_ANIMATION.transition,
+                        delay: 0.3 + (SOCIALS.length + 1) * 0.1,
+                      }}
+                    >
+                      <StatusLine className="mt-3 font-mono text-xs text-zinc-400" />
+                    </motion.div>
                   </>
                 ) : null}
               </div>

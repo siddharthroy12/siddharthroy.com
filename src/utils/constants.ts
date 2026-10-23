@@ -80,3 +80,12 @@ export const PROJECTS: readonly Project[] = [
     url: "https://github.com/siddharthroy12/graphite",
   },
 ];
+
+/** Where the local-time readout in the header points to. */
+export const LOCATION = {
+  label: "india",
+  timeZone: "Asia/Kolkata",
+} as const;
+
+/** Short status shown next to the clock. */
+export const STATUS = "building at Algo One";
