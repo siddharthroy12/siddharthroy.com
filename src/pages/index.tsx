@@ -5,6 +5,7 @@ import {
 } from "motion/react";
 import { memo, useCallback, useState } from "react";
 import AnimatedText from "@/components/animated-text";
+import GutterNote from "@/components/gutter-note";
 import HoverPreview from "@/components/hover-preview";
 import { PROJECTS, WORK_ITEMS } from "@/utils/constants";
 import getPreviewUrl from "@/utils/get-preview-url";
@@ -192,9 +193,12 @@ export default function Home() {
         </header>
 
         <div
-          className="flex flex-col gap-3 px-4 py-4"
+          className="relative flex flex-col gap-3 px-4 py-4"
           onMouseLeave={clearProjectHover}
         >
+          <GutterNote side="right" className="top-3" delay={1.6}>
+            {"hover for a peek"}
+          </GutterNote>
           {PROJECTS.map((project, i) => (
             <ItemRow
               key={project.slug}

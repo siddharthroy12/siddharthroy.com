@@ -1,4 +1,5 @@
 import AnimatedText from "@/components/animated-text";
+import GutterNote from "@/components/gutter-note";
 import { GitHubIcon, LinkedInIcon, XIcon } from "@/components/icons";
 import InteractiveDots from "@/components/interactive-dots";
 import SoundToggle from "@/components/sound-toggle";
@@ -17,8 +18,16 @@ import {
   useTransform,
 } from "motion/react";
 import type { AppProps } from "next/app";
+import { Caveat } from "next/font/google";
 import Head from "next/head";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["500"],
+  variable: "--font-caveat",
+  display: "swap",
+});
 
 const NAME_WRAPPER_SPRING_CONFIG = {
   type: "spring",
@@ -185,7 +194,9 @@ export default function App({ Component, pageProps, router }: AppProps) {
   }
 
   return (
-    <main className="relative flex min-h-dvh w-full overflow-hidden bg-background text-stone-100">
+    <main
+      className={`${caveat.variable} relative flex min-h-dvh w-full overflow-hidden bg-background text-stone-100`}
+    >
       <Head>
         <title>{SITE_TITLE}</title>
         <meta name="description" content={SITE_DESCRIPTION} />
@@ -230,7 +241,15 @@ export default function App({ Component, pageProps, router }: AppProps) {
               transition={NAME_WRAPPER_SPRING_CONFIG}
             >
               {expanded ? (
-                <InteractiveDots className="screen-line-top h-24 touch-none sm:h-32" />
+                <div className="relative">
+                  <InteractiveDots className="screen-line-top h-24 touch-none sm:h-32" />
+                  <span className="pointer-events-none absolute right-4 bottom-2 font-mono text-[10px] text-zinc-600">
+                    fig. 1
+                  </span>
+                  <GutterNote side="right" className="top-1/2 -translate-y-1/2">
+                    {"follows your cursor,\nclick for a sound"}
+                  </GutterNote>
+                </div>
               ) : null}
               <div
                 className={
@@ -256,7 +275,10 @@ export default function App({ Component, pageProps, router }: AppProps) {
                       element="p"
                     />
 
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="relative flex items-center gap-2 mt-1">
+                      <GutterNote side="left" className="-top-4" delay={1}>
+                        follow me
+                      </GutterNote>
                       {SOCIALS.map((social, i) => (
                         <motion.a
                           key={social.label}
@@ -307,7 +329,12 @@ export default function App({ Component, pageProps, router }: AppProps) {
                   <div className="stripe-divider" />
                   <Component {...pageProps} />
                   <div className="stripe-divider screen-line-bottom" />
-                  <InteractiveDots className="screen-line-bottom h-24 touch-none sm:h-32" />
+                  <div className="relative">
+                    <InteractiveDots className="screen-line-bottom h-24 touch-none sm:h-32" />
+                    <span className="pointer-events-none absolute right-4 bottom-2 font-mono text-[10px] text-zinc-600">
+                      fig. 2
+                    </span>
+                  </div>
                 </>
               ) : null}
 

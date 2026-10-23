@@ -169,10 +169,16 @@
   --color-line: color-mix(in oklab, #27272a 64%, #09090b);
 }
 
+
 h1,
 h2,
 h3 {
   font-family: var(--font-heading);
+}
+
+/* handwriting face for gutter annotations; variable set by next/font on <main> */
+.font-hand {
+  font-family: var(--font-caveat), "Segoe Print", "Bradley Hand", cursive;
 }
 
 html {
