@@ -18,9 +18,16 @@ import {
   useTransform,
 } from "motion/react";
 import type { AppProps } from "next/app";
-import { Caveat } from "next/font/google";
+import { Caveat, Geist } from "next/font/google";
 import Head from "next/head";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+const geist = Geist({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-geist",
+  display: "swap",
+});
 
 const caveat = Caveat({
   subsets: ["latin"],
@@ -195,7 +202,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
 
   return (
     <main
-      className={`${caveat.variable} relative flex min-h-dvh w-full overflow-hidden bg-background text-stone-100`}
+      className={`${caveat.variable} ${geist.variable} relative flex min-h-dvh w-full overflow-hidden bg-background text-stone-100`}
     >
       <Head>
         <title>{SITE_TITLE}</title>
@@ -262,7 +269,12 @@ export default function App({ Component, pageProps, router }: AppProps) {
                   layout
                   ref={ref}
                   className="font-bold whitespace-nowrap will-change-transform"
-                  style={{ fontSize: fontSizeRem }}
+                  style={{
+                    fontSize: fontSizeRem,
+                    // first step of the intro, so there is no flash of the
+                    // heading font before the animation takes over
+                    fontFamily: `"${ANIMATION_STEPS[0].font}"`,
+                  }}
                   onPointerEnter={glitchName}
                 >
                   siddharth
@@ -271,6 +283,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
                 {expanded ? (
                   <>
                     <AnimatedText
+                      className="font-geist text-zinc-300"
                       text="software engineer and gamer"
                       element="p"
                     />

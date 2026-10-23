@@ -84,7 +84,7 @@ const ItemRow = memo(function ItemRow({
   return (
     <a href={url} target="_blank" rel="noopener noreferrer">
       <motion.div
-        className="relative flex flex-col items-start will-change-transform -mx-2 px-2 -my-1 py-1 text-left"
+        className="font-geist relative flex flex-col items-start will-change-transform -mx-2 px-2 -my-1 py-1 text-left"
         initial={ITEM_ANIMATION.initial}
         animate={ITEM_ANIMATION.animate}
         transition={{
@@ -103,7 +103,7 @@ const ItemRow = memo(function ItemRow({
 
         <div className="relative flex items-baseline justify-between gap-2 sm:gap-8 w-full">
           <div className="flex items-baseline gap-2 min-w-0">
-            <span className="font-bold text-stone-100 truncate">{label}</span>
+            <span className="font-medium text-stone-100 truncate">{label}</span>
             <span className="text-sm text-zinc-300 hidden sm:inline">
               {role}
             </span>
@@ -150,7 +150,7 @@ export default function Home() {
       <section className="screen-line-top screen-line-bottom">
         <header className="screen-line-bottom px-4 py-2">
           <AnimatedText
-            className="text-xl font-bold"
+            className="text-2xl font-medium tracking-tight"
             element="h2"
             text="work"
             artificialDelay={0.3}
@@ -185,7 +185,7 @@ export default function Home() {
       <section className="screen-line-top screen-line-bottom screen-line-bottom-border">
         <header className="screen-line-bottom px-4 py-2">
           <AnimatedText
-            className="text-xl font-bold"
+            className="text-2xl font-medium tracking-tight"
             element="h2"
             text="projects"
             artificialDelay={0.3}

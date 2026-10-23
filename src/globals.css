@@ -163,16 +163,22 @@
 
 @theme {
   --font-sans: "Redaction", sans-serif;
-  --font-heading: "Redaction 50", sans-serif;
   --color-background: #09090b;
   --color-border: #27272a;
   --color-line: color-mix(in oklab, #27272a 64%, #09090b);
 }
 
+/* headings use Geist (variable set by next/font on <main>); the name on the
+   home page overrides this inline from the intro animation */
 h1,
 h2,
 h3 {
-  font-family: var(--font-heading);
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Geist for body copy that should match the headings */
+.font-geist {
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* handwriting face for gutter annotations; variable set by next/font on <main> */
