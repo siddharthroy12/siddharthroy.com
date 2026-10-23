@@ -169,7 +169,6 @@
   --color-line: color-mix(in oklab, #27272a 64%, #09090b);
 }
 
-
 h1,
 h2,
 h3 {
@@ -230,8 +229,11 @@ body {
   position: absolute;
   left: -100vw;
   z-index: -1;
-  width: 200vw;
+  /* one extra tile of width so the drift loop never shows a gap */
+  width: calc(200vw + 10px);
   height: 100%;
+  /* drift by exactly one tile so the loop is seamless; transform keeps it on the compositor */
+  animation: stripe-drift 0.9s linear infinite;
   --pattern-foreground: color-mix(in oklab, var(--color-line) 56%, transparent);
   background-image: repeating-linear-gradient(
     315deg,
@@ -241,4 +243,19 @@ body {
     transparent 50%
   );
   background-size: 10px 10px;
+}
+
+@keyframes stripe-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stripe-divider::before {
+    animation: none;
+  }
 }
