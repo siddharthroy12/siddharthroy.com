@@ -168,17 +168,14 @@
   --color-line: color-mix(in oklab, #27272a 64%, #09090b);
 }
 
-/* headings use Geist (variable set by next/font on <main>); the name on the
-   home page overrides this inline from the intro animation */
+/* Mononoki is the base face for the whole page (self-hosted via
+   @fontsource, imported in _app). The name (inline, from the intro animation)
+   and the handwritten gutter notes are the only deliberate exceptions. */
+main,
 h1,
 h2,
 h3 {
-  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-}
-
-/* Geist for body copy that should match the headings */
-.font-geist {
-  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  font-family: "Mononoki", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
 /* handwriting face for gutter annotations; variable set by next/font on <main> */

@@ -6,6 +6,8 @@ import SoundToggle from "@/components/sound-toggle";
 import StatusLine from "@/components/status-line";
 import { PROJECTS, SOCIALS, WORK_ITEMS } from "@/utils/constants";
 import "@/globals.css";
+import "@fontsource/mononoki/latin-400.css";
+import "@fontsource/mononoki/latin-700.css";
 import { Analytics } from "@vercel/analytics/next";
 import {
   LayoutGroup,
@@ -18,16 +20,9 @@ import {
   useTransform,
 } from "motion/react";
 import type { AppProps } from "next/app";
-import { Caveat, Geist } from "next/font/google";
+import { Caveat } from "next/font/google";
 import Head from "next/head";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-const geist = Geist({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-geist",
-  display: "swap",
-});
 
 const caveat = Caveat({
   subsets: ["latin"],
@@ -202,7 +197,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
 
   return (
     <main
-      className={`${caveat.variable} ${geist.variable} relative flex min-h-dvh w-full overflow-hidden bg-background text-stone-100`}
+      className={`${caveat.variable} relative flex min-h-dvh w-full overflow-hidden bg-background text-stone-100`}
     >
       <Head>
         <title>{SITE_TITLE}</title>
@@ -236,157 +231,165 @@ export default function App({ Component, pageProps, router }: AppProps) {
         <div className="mx-auto h-full w-full max-w-[40rem] border-x border-border" />
       </div>
       <motion.div className="relative z-10 flex flex-1">
-        <div className="flex-1 flex justify-center px-2 py-[10vh] overflow-x-hidden overflow-y-auto">
-          <LayoutGroup>
-            <motion.div
-              layout
-              className={
-                expanded
-                  ? "relative isolate flex w-full max-w-[40rem] flex-col items-stretch"
-                  : "relative isolate flex flex-col items-start"
-              }
-              transition={NAME_WRAPPER_SPRING_CONFIG}
-            >
-              {expanded ? (
-                <div className="relative">
-                  <InteractiveDots className="screen-line-top h-24 touch-none sm:h-32" />
-                  <span className="pointer-events-none absolute right-4 bottom-2 font-mono text-[10px] text-zinc-600">
-                    fig. 1
-                  </span>
-                  <GutterNote side="right" className="top-1/2 -translate-y-1/2">
-                    {"follows your cursor,\nclick for a sound"}
-                  </GutterNote>
-                </div>
-              ) : null}
-              <div
+        <div className="flex-1 flex justify-center py-[10vh] overflow-x-hidden overflow-y-auto">
+          {/* The full-width rules extend 100vw past the column. Clipping them
+              here (overflow-y stays visible, so this really is a clip) keeps
+              them from counting as scrollable overflow. */}
+          <div className="flex w-full justify-center overflow-x-clip px-2">
+            <LayoutGroup>
+              <motion.div
+                layout
                 className={
                   expanded
-                    ? "screen-line-top screen-line-top-border screen-line-bottom px-4 pt-6 pb-5"
-                    : "px-4"
+                    ? "relative isolate flex w-full max-w-[40rem] flex-col items-stretch"
+                    : "relative isolate flex flex-col items-start"
                 }
+                transition={NAME_WRAPPER_SPRING_CONFIG}
               >
-                <motion.h1
-                  layout
-                  ref={ref}
-                  className="font-bold whitespace-nowrap will-change-transform"
-                  style={{
-                    fontSize: fontSizeRem,
-                    // first step of the intro, so there is no flash of the
-                    // heading font before the animation takes over
-                    fontFamily: `"${ANIMATION_STEPS[0].font}"`,
-                  }}
-                  onPointerEnter={glitchName}
-                >
-                  siddharth
-                </motion.h1>
-
                 {expanded ? (
-                  <>
-                    <AnimatedText
-                      className="font-geist text-zinc-300"
-                      text="software engineer and gamer"
-                      element="p"
-                    />
+                  <div className="relative">
+                    <InteractiveDots className="screen-line-top h-24 touch-none sm:h-32" />
+                    <span className="pointer-events-none absolute right-4 bottom-2 text-[10px] text-zinc-600">
+                      fig. 1
+                    </span>
+                    <GutterNote
+                      side="right"
+                      className="top-1/2 -translate-y-1/2"
+                    >
+                      {"follows your cursor,\nclick for a sound"}
+                    </GutterNote>
+                  </div>
+                ) : null}
+                <div
+                  className={
+                    expanded
+                      ? "screen-line-top screen-line-top-border screen-line-bottom px-4 pt-6 pb-5"
+                      : "px-4"
+                  }
+                >
+                  <motion.h1
+                    layout
+                    ref={ref}
+                    className="font-bold whitespace-nowrap will-change-transform"
+                    style={{
+                      fontSize: fontSizeRem,
+                      // first step of the intro, so there is no flash of the
+                      // heading font before the animation takes over
+                      fontFamily: `"${ANIMATION_STEPS[0].font}"`,
+                    }}
+                    onPointerEnter={glitchName}
+                  >
+                    siddharth
+                  </motion.h1>
 
-                    <div className="relative flex items-center gap-2 mt-1">
-                      <GutterNote side="left" className="-top-4" delay={1}>
-                        follow me
-                      </GutterNote>
-                      {SOCIALS.map((social, i) => (
-                        <motion.a
-                          key={social.label}
-                          href={social.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={social.label}
-                          className="text-zinc-400 hover:text-violet-100 transition-colors"
+                  {expanded ? (
+                    <>
+                      <AnimatedText
+                        className="text-zinc-300"
+                        text="software engineer and gamer"
+                        element="p"
+                      />
+
+                      <div className="relative flex items-center gap-2 mt-1">
+                        <GutterNote side="left" className="-top-4" delay={1}>
+                          follow me
+                        </GutterNote>
+                        {SOCIALS.map((social, i) => (
+                          <motion.a
+                            key={social.label}
+                            href={social.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={social.label}
+                            className="text-zinc-400 hover:text-violet-100 transition-colors"
+                            initial={SOCIAL_ANIMATION.initial}
+                            animate={SOCIAL_ANIMATION.animate}
+                            transition={{
+                              ...SOCIAL_ANIMATION.transition,
+                              delay: 0.3 + i * 0.1,
+                            }}
+                          >
+                            {SOCIAL_ICONS[social.label]}
+                          </motion.a>
+                        ))}
+                        <motion.span
+                          className="flex"
                           initial={SOCIAL_ANIMATION.initial}
                           animate={SOCIAL_ANIMATION.animate}
                           transition={{
                             ...SOCIAL_ANIMATION.transition,
-                            delay: 0.3 + i * 0.1,
+                            delay: 0.3 + SOCIALS.length * 0.1,
                           }}
                         >
-                          {SOCIAL_ICONS[social.label]}
-                        </motion.a>
-                      ))}
-                      <motion.span
-                        className="flex"
+                          <SoundToggle className="text-zinc-400 hover:text-violet-100 transition-colors cursor-pointer" />
+                        </motion.span>
+                      </div>
+
+                      <motion.div
                         initial={SOCIAL_ANIMATION.initial}
                         animate={SOCIAL_ANIMATION.animate}
                         transition={{
                           ...SOCIAL_ANIMATION.transition,
-                          delay: 0.3 + SOCIALS.length * 0.1,
+                          delay: 0.3 + (SOCIALS.length + 1) * 0.1,
                         }}
                       >
-                        <SoundToggle className="text-zinc-400 hover:text-violet-100 transition-colors cursor-pointer" />
-                      </motion.span>
-                    </div>
+                        <StatusLine className="mt-3 text-xs text-zinc-400" />
+                      </motion.div>
+                    </>
+                  ) : null}
+                </div>
 
-                    <motion.div
-                      initial={SOCIAL_ANIMATION.initial}
-                      animate={SOCIAL_ANIMATION.animate}
-                      transition={{
-                        ...SOCIAL_ANIMATION.transition,
-                        delay: 0.3 + (SOCIALS.length + 1) * 0.1,
-                      }}
-                    >
-                      <StatusLine className="mt-3 font-mono text-xs text-zinc-400" />
-                    </motion.div>
+                {expanded ? (
+                  <>
+                    <div className="stripe-divider" />
+                    <Component {...pageProps} />
+                    <div className="stripe-divider screen-line-bottom" />
+                    <div className="relative">
+                      <InteractiveDots className="screen-line-bottom h-24 touch-none sm:h-32" />
+                      <span className="pointer-events-none absolute right-4 bottom-2 text-[10px] text-zinc-600">
+                        fig. 2
+                      </span>
+                    </div>
                   </>
                 ) : null}
-              </div>
 
-              {expanded ? (
-                <>
-                  <div className="stripe-divider" />
-                  <Component {...pageProps} />
-                  <div className="stripe-divider screen-line-bottom" />
-                  <div className="relative">
-                    <InteractiveDots className="screen-line-bottom h-24 touch-none sm:h-32" />
-                    <span className="pointer-events-none absolute right-4 bottom-2 font-mono text-[10px] text-zinc-600">
-                      fig. 2
-                    </span>
-                  </div>
-                </>
-              ) : null}
+                <noscript>
+                  <p>software engineer and gamer</p>
+                  <nav>
+                    {SOCIALS.map((social) => (
+                      <a key={social.label} href={social.href}>
+                        {social.label}
+                      </a>
+                    ))}
+                  </nav>
+                  <p>
+                    <a href="https://looskie.com/">design by looskie</a>
+                  </p>
 
-              <noscript>
-                <p>software engineer and gamer</p>
-                <nav>
-                  {SOCIALS.map((social) => (
-                    <a key={social.label} href={social.href}>
-                      {social.label}
-                    </a>
+                  <h2>work</h2>
+                  {WORK_ITEMS.map((item) => (
+                    <div key={item.slug}>
+                      <a href={item.url}>
+                        <strong>{item.company}</strong> — {item.role}
+                      </a>
+                      <p>{item.about}</p>
+                      <span>{item.date}</span>
+                    </div>
                   ))}
-                </nav>
-                <p>
-                  <a href="https://looskie.com/">design by looskie</a>
-                </p>
 
-                <h2>work</h2>
-                {WORK_ITEMS.map((item) => (
-                  <div key={item.slug}>
-                    <a href={item.url}>
-                      <strong>{item.company}</strong> — {item.role}
-                    </a>
-                    <p>{item.about}</p>
-                    <span>{item.date}</span>
-                  </div>
-                ))}
-
-                <h2>projects</h2>
-                {PROJECTS.map((project) => (
-                  <div key={project.slug}>
-                    <a href={project.url}>
-                      <strong>{project.name}</strong> — {project.role}
-                    </a>
-                    <p>{project.about}</p>
-                  </div>
-                ))}
-              </noscript>
-            </motion.div>
-          </LayoutGroup>
+                  <h2>projects</h2>
+                  {PROJECTS.map((project) => (
+                    <div key={project.slug}>
+                      <a href={project.url}>
+                        <strong>{project.name}</strong> — {project.role}
+                      </a>
+                      <p>{project.about}</p>
+                    </div>
+                  ))}
+                </noscript>
+              </motion.div>
+            </LayoutGroup>
+          </div>
         </div>
       </motion.div>
       <Analytics />

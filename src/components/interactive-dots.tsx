@@ -224,8 +224,17 @@ export default function InteractiveDots({ className }: Props) {
   }, []);
 
   return (
-    <div ref={wrapperRef} className={className} aria-hidden="true">
-      <canvas ref={canvasRef} className="block h-full w-full" />
+    <div
+      ref={wrapperRef}
+      className={`relative ${className ?? ""}`}
+      aria-hidden="true"
+    >
+      {/* absolutely positioned so the canvas's pixel size never props the
+          column open wider than the viewport */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 block h-full w-full"
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@
     "": {
       "name": "website",
       "dependencies": {
+        "@fontsource/mononoki": "^5.3.0",
         "@vercel/analytics": "^1.6.1",
         "motion": "^12.34.4",
         "next": "16.1.6",
@@ -55,6 +56,8 @@
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.2.0", "", { "os": "win32", "cpu": "x64" }, "sha512-Nawu5nHjP/zPKTIryh2AavzTc/KEg4um/MxWdXW0A6P/RZOyIpa7+QSjeXwAwX/utJGaCoXRPWtF3m5U/bB3Ww=="],
 
     "@emnapi/runtime": ["@emnapi/runtime@1.8.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-mehfKSMWjjNol8659Z8KxEMrdSJDDot5SXMq00dM8BN4o+CLNXQ0xH2V7EchNHV4RmbZLmmPdEaXZc5H2FXmDg=="],
+
+    "@fontsource/mononoki": ["@fontsource/mononoki@5.3.0", "", {}, "sha512-jY8v/sxOCaH/MWlEp7/WJ4mg9407xbBkBiPEfFaH1dT9m7zDgXkLOpegFBCvJV4gT94VjszQl8iC0qUeuy7byQ=="],
 
     "@img/colour": ["@img/colour@1.0.0", "", {}, "sha512-A5P/LfWGFSl6nsckYtjw9da+19jB8hkJ6ACTGcDfEJ0aE+l2n2El7dsVM7UVHZQ9s2lmYMWlrS21YLy2IR1LUw=="],
 

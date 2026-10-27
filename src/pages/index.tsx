@@ -1,10 +1,6 @@
-import {
-  type MotionNodeAnimationOptions,
-  motion,
-  type Transition,
-} from "motion/react";
-import { memo, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import AnimatedText from "@/components/animated-text";
+import { ProjectEntry, WorkEntry } from "@/components/entries";
 import GutterNote from "@/components/gutter-note";
 import HoverPreview from "@/components/hover-preview";
 import { PROJECTS, WORK_ITEMS } from "@/utils/constants";
@@ -16,29 +12,6 @@ type HoverState = {
   previewUrl: string;
 } | null;
 
-const ITEM_ANIMATION = {
-  initial: {
-    opacity: 0,
-    y: 5,
-    filter: "blur(4px)",
-  },
-  animate: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-  },
-  transition: {
-    duration: 1,
-    ease: [0.2, 0.65, 0.3, 0.9],
-  },
-} as const satisfies MotionNodeAnimationOptions;
-
-const ITEM_HOVER_TRANSITION = {
-  type: "spring",
-  stiffness: 400,
-  damping: 30,
-} as const satisfies Transition;
-
 // precompute preview urls since items are static
 const WORK_PREVIEW_URLS = new Map(
   WORK_ITEMS.map((item) => [item.slug, getPreviewUrl(item) ?? ""]),
@@ -46,83 +19,6 @@ const WORK_PREVIEW_URLS = new Map(
 const PROJECT_PREVIEW_URLS = new Map(
   PROJECTS.map((item) => [item.slug, getPreviewUrl(item) ?? ""]),
 );
-
-type ItemRowProps = {
-  id: string;
-  label: string;
-  role: string;
-  about: string;
-  date?: string;
-  url: string;
-  isHovered: boolean;
-  layoutId: string;
-  delay: number;
-  previewUrl: string;
-  onHover: (id: string, previewUrl: string, rect: DOMRect) => void;
-};
-
-const ItemRow = memo(function ItemRow({
-  id,
-  label,
-  role,
-  about,
-  date,
-  url,
-  isHovered,
-  layoutId,
-  delay,
-  previewUrl,
-  onHover,
-}: ItemRowProps) {
-  const handleMouseEnter = useCallback(
-    (e: React.MouseEvent) => {
-      onHover(id, previewUrl, e.currentTarget.getBoundingClientRect());
-    },
-    [onHover, id, previewUrl],
-  );
-
-  return (
-    <a href={url} target="_blank" rel="noopener noreferrer">
-      <motion.div
-        className="font-geist relative flex flex-col items-start will-change-transform -mx-2 px-2 -my-1 py-1 text-left"
-        initial={ITEM_ANIMATION.initial}
-        animate={ITEM_ANIMATION.animate}
-        transition={{
-          ...ITEM_ANIMATION.transition,
-          delay,
-        }}
-        onMouseEnter={handleMouseEnter}
-      >
-        {isHovered ? (
-          <motion.div
-            layoutId={layoutId}
-            className="absolute inset-0 bg-white/8 border border-white/20 rounded-md"
-            transition={ITEM_HOVER_TRANSITION}
-          />
-        ) : null}
-
-        <div className="relative flex items-baseline justify-between gap-2 sm:gap-8 w-full">
-          <div className="flex items-baseline gap-2 min-w-0">
-            <span className="font-medium text-stone-100 truncate">{label}</span>
-            <span className="text-sm text-zinc-300 hidden sm:inline">
-              {role}
-            </span>
-          </div>
-          {date ? (
-            <span className="text-sm text-zinc-400 whitespace-nowrap hidden sm:inline">
-              {date}
-            </span>
-          ) : null}
-        </div>
-
-        <span className="relative text-xs text-zinc-300 sm:hidden">{role}</span>
-
-        <span className="relative text-xs text-zinc-200/90">{about}</span>
-        <img src={previewUrl} alt="" className="hidden" fetchPriority="low" />
-      </motion.div>
-    </a>
-  );
-});
 
 export default function Home() {
   const [hoveredWork, setHoveredWork] = useState<HoverState>(null);
@@ -157,21 +53,12 @@ export default function Home() {
           />
         </header>
 
-        <div
-          className="flex flex-col gap-3 px-4 py-4"
-          onMouseLeave={clearWorkHover}
-        >
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: hover only drives the preview image; entries contain their own links */}
+        <div onMouseLeave={clearWorkHover}>
           {WORK_ITEMS.map((item, i) => (
-            <ItemRow
+            <WorkEntry
               key={item.slug}
-              id={item.company}
-              label={item.company}
-              role={item.role}
-              about={item.about}
-              date={item.date}
-              url={item.url}
-              isHovered={hoveredWork?.id === item.company}
-              layoutId="work-hover"
+              item={item}
               delay={0.5 + i * 0.15}
               previewUrl={WORK_PREVIEW_URLS.get(item.slug) ?? ""}
               onHover={handleWorkHover}
@@ -183,32 +70,25 @@ export default function Home() {
       <div className="stripe-divider" />
 
       <section className="screen-line-top screen-line-bottom screen-line-bottom-border">
-        <header className="screen-line-bottom px-4 py-2">
+        <header className="screen-line-bottom flex items-baseline gap-1.5 px-4 py-2">
           <AnimatedText
             className="text-2xl font-medium tracking-tight"
             element="h2"
             text="projects"
             artificialDelay={0.3}
           />
+          <span className="text-xs text-zinc-500">({PROJECTS.length})</span>
         </header>
 
-        <div
-          className="relative flex flex-col gap-3 px-4 py-4"
-          onMouseLeave={clearProjectHover}
-        >
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: hover only drives the preview image; entries contain their own links and buttons */}
+        <div className="relative" onMouseLeave={clearProjectHover}>
           <GutterNote side="right" className="top-3" delay={1.6}>
             {"hover for a peek"}
           </GutterNote>
           {PROJECTS.map((project, i) => (
-            <ItemRow
+            <ProjectEntry
               key={project.slug}
-              id={project.name}
-              label={project.name}
-              role={project.role}
-              about={project.about}
-              url={project.url}
-              isHovered={hoveredProject?.id === project.name}
-              layoutId="project-hover"
+              project={project}
               delay={0.5 + i * 0.15}
               previewUrl={PROJECT_PREVIEW_URLS.get(project.slug) ?? ""}
               onHover={handleProjectHover}

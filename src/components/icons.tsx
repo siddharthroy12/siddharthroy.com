@@ -59,3 +59,83 @@ export function SpeakerOffIcon() {
     </svg>
   );
 }
+
+const strokeProps = {
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+} as const;
+
+export function CodeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      {...strokeProps}
+      aria-hidden="true"
+      className={className ?? "size-3.5"}
+    >
+      <path d="m16 18 6-6-6-6" />
+      <path d="m8 6-6 6 6 6" />
+    </svg>
+  );
+}
+
+export function ArrowUpRightIcon({ className }: { className?: string }) {
+  return (
+    <svg {...strokeProps} aria-hidden="true" className={className ?? "size-4"}>
+      <path d="M7 7h10v10" />
+      <path d="M7 17 17 7" />
+    </svg>
+  );
+}
+
+export function LinkIcon({ className }: { className?: string }) {
+  return (
+    <svg {...strokeProps} aria-hidden="true" className={className ?? "size-4"}>
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  );
+}
+
+export function ChevronsUpDownIcon({ className }: { className?: string }) {
+  return (
+    <svg {...strokeProps} aria-hidden="true" className={className ?? "size-4"}>
+      <path d="m7 15 5 5 5-5" />
+      <path d="m7 9 5-5 5 5" />
+    </svg>
+  );
+}
+
+export function SolarSystemIcon({ className }: { className?: string }) {
+  return (
+    <svg {...strokeProps} aria-hidden="true" className={className ?? "size-4"}>
+      <circle cx="12" cy="12" r="2.5" />
+      <ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-25 12 12)" />
+      <circle cx="21.06" cy="7.77" r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="2.94" cy="16.23" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function RocketIcon({ className }: { className?: string }) {
+  return (
+    <svg {...strokeProps} aria-hidden="true" className={className ?? "size-4"}>
+      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+      <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+      <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+      <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+    </svg>
+  );
+}
+
+export function PencilIcon({ className }: { className?: string }) {
+  return (
+    <svg {...strokeProps} aria-hidden="true" className={className ?? "size-4"}>
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+      <path d="m15 5 4 4" />
+    </svg>
+  );
+}
