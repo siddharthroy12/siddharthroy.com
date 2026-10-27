@@ -4,12 +4,14 @@ import {
   ArrowUpRightIcon,
   ChevronsUpDownIcon,
   CodeIcon,
+  GraduationCapIcon,
   LinkIcon,
   PencilIcon,
   RocketIcon,
   SolarSystemIcon,
 } from "@/components/icons";
 import {
+  type EducationItem,
   ENTITY_LINKS,
   type Project,
   type ProjectIcon,
@@ -341,6 +343,44 @@ export const ProjectEntry = memo(function ProjectEntry({
         ) : null}
       </AnimatePresence>
       <img src={previewUrl} alt="" className="hidden" fetchPriority="low" />
+    </motion.div>
+  );
+});
+
+type EducationEntryProps = {
+  item: EducationItem;
+  delay: number;
+};
+
+export const EducationEntry = memo(function EducationEntry({
+  item,
+  delay,
+}: EducationEntryProps) {
+  return (
+    <motion.div
+      className="border-b border-line last:border-b-0"
+      initial={ENTRY_ANIMATION.initial}
+      animate={ENTRY_ANIMATION.animate}
+      transition={{ ...ENTRY_ANIMATION.transition, delay }}
+    >
+      <div className="flex items-stretch transition-colors hover:bg-white/[0.04]">
+        <div className="grid w-14 shrink-0 place-items-center border-r border-line">
+          <Badge
+            label={item.school}
+            className="size-8 text-xs"
+            icon={<GraduationCapIcon />}
+          />
+        </div>
+        <div className="min-w-0 flex-1 px-3 py-3">
+          <h3 className="text-base leading-snug font-medium">{item.school}</h3>
+          <p className="mt-0.5 text-sm text-zinc-400">{item.degree}</p>
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-zinc-500">
+            <span>{item.date}</span>
+            <span aria-hidden="true" className="h-3 w-px bg-border" />
+            <span>{item.location}</span>
+          </p>
+        </div>
+      </div>
     </motion.div>
   );
 });

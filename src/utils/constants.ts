@@ -29,10 +29,36 @@ export type Project = {
   noPreview?: boolean;
 };
 
+export type EducationItem = {
+  school: string;
+  slug: string;
+  /** Full degree name, with the usual abbreviation. */
+  degree: string;
+  date: string;
+  location: string;
+};
+
 export type Social = {
   label: string;
   href: string;
 };
+
+export const EDUCATION: readonly EducationItem[] = [
+  {
+    school: "LPU Online",
+    slug: "lpu-online",
+    degree: "Master of Computer Applications (MCA)",
+    date: "2024 — 2026",
+    location: "Remote",
+  },
+  {
+    school: "Leo College",
+    slug: "leo-college",
+    degree: "Bachelor of Computer Applications (BCA)",
+    date: "2021 — 2024",
+    location: "Banswara",
+  },
+];
 
 export const SOCIALS: readonly Social[] = [
   { label: "GitHub", href: "https://github.com/siddharthroy12" },

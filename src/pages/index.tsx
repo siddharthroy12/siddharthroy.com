@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
 import AnimatedText from "@/components/animated-text";
-import { ProjectEntry, WorkEntry } from "@/components/entries";
+import { EducationEntry, ProjectEntry, WorkEntry } from "@/components/entries";
 import GutterNote from "@/components/gutter-note";
 import HoverPreview from "@/components/hover-preview";
-import { PROJECTS, WORK_ITEMS } from "@/utils/constants";
+import { EDUCATION, PROJECTS, WORK_ITEMS } from "@/utils/constants";
 import getPreviewUrl from "@/utils/get-preview-url";
 
 type HoverState = {
@@ -62,6 +62,29 @@ export default function Home() {
               delay={0.5 + i * 0.15}
               previewUrl={WORK_PREVIEW_URLS.get(item.slug) ?? ""}
               onHover={handleWorkHover}
+            />
+          ))}
+        </div>
+      </section>
+
+      <div className="stripe-divider" />
+
+      <section className="screen-line-top screen-line-bottom">
+        <header className="screen-line-bottom px-4 py-2">
+          <AnimatedText
+            className="text-2xl font-medium tracking-tight"
+            element="h2"
+            text="education"
+            artificialDelay={0.3}
+          />
+        </header>
+
+        <div>
+          {EDUCATION.map((item, i) => (
+            <EducationEntry
+              key={item.slug}
+              item={item}
+              delay={0.5 + i * 0.15}
             />
           ))}
         </div>

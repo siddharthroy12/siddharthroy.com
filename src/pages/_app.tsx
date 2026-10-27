@@ -1,10 +1,10 @@
 import AnimatedText from "@/components/animated-text";
+import FishField from "@/components/fish-field";
 import GutterNote from "@/components/gutter-note";
 import { GitHubIcon, LinkedInIcon, XIcon } from "@/components/icons";
-import InteractiveDots from "@/components/interactive-dots";
 import SoundToggle from "@/components/sound-toggle";
 import StatusLine from "@/components/status-line";
-import { PROJECTS, SOCIALS, WORK_ITEMS } from "@/utils/constants";
+import { EDUCATION, PROJECTS, SOCIALS, WORK_ITEMS } from "@/utils/constants";
 import "@/globals.css";
 import "@fontsource/mononoki/latin-400.css";
 import "@fontsource/mononoki/latin-700.css";
@@ -231,7 +231,8 @@ export default function App({ Component, pageProps, router }: AppProps) {
         <div className="mx-auto h-full w-full max-w-[40rem] border-x border-border" />
       </div>
       <motion.div className="relative z-10 flex flex-1">
-        <div className="flex-1 flex justify-center py-[10vh] overflow-x-hidden overflow-y-auto">
+        <div className="relative flex-1 flex justify-center py-[10vh] overflow-x-hidden overflow-y-auto">
+          <FishField />
           {/* The full-width rules extend 100vw past the column. Clipping them
               here (overflow-y stays visible, so this really is a clip) keeps
               them from counting as scrollable overflow. */}
@@ -239,6 +240,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
             <LayoutGroup>
               <motion.div
                 layout
+                data-fish-avoid
                 className={
                   expanded
                     ? "relative isolate flex w-full max-w-[40rem] flex-col items-stretch"
@@ -247,18 +249,10 @@ export default function App({ Component, pageProps, router }: AppProps) {
                 transition={NAME_WRAPPER_SPRING_CONFIG}
               >
                 {expanded ? (
-                  <div className="relative">
-                    <InteractiveDots className="screen-line-top h-24 touch-none sm:h-32" />
-                    <span className="pointer-events-none absolute right-4 bottom-2 text-[10px] text-zinc-600">
-                      fig. 1
-                    </span>
-                    <GutterNote
-                      side="right"
-                      className="top-1/2 -translate-y-1/2"
-                    >
-                      {"follows your cursor,\nclick for a sound"}
-                    </GutterNote>
-                  </div>
+                  <div
+                    data-fish-clear
+                    className="screen-line-top relative h-24 sm:h-32"
+                  ></div>
                 ) : null}
                 <div
                   className={
@@ -344,12 +338,10 @@ export default function App({ Component, pageProps, router }: AppProps) {
                     <div className="stripe-divider" />
                     <Component {...pageProps} />
                     <div className="stripe-divider screen-line-bottom" />
-                    <div className="relative">
-                      <InteractiveDots className="screen-line-bottom h-24 touch-none sm:h-32" />
-                      <span className="pointer-events-none absolute right-4 bottom-2 text-[10px] text-zinc-600">
-                        fig. 2
-                      </span>
-                    </div>
+                    <div
+                      data-fish-clear
+                      className="screen-line-bottom relative h-24 sm:h-32"
+                    ></div>
                   </>
                 ) : null}
 
@@ -374,6 +366,16 @@ export default function App({ Component, pageProps, router }: AppProps) {
                       </a>
                       <p>{item.about}</p>
                       <span>{item.date}</span>
+                    </div>
+                  ))}
+
+                  <h2>education</h2>
+                  {EDUCATION.map((item) => (
+                    <div key={item.slug}>
+                      <strong>{item.school}</strong> — {item.degree}
+                      <p>
+                        {item.date}, {item.location}
+                      </p>
                     </div>
                   ))}
 
