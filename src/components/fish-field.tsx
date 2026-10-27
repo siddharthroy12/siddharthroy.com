@@ -185,13 +185,24 @@ export default function FishField() {
       if (!avoidEl || !avoidEl.isConnected) {
         avoidEl = document.querySelector("[data-fish-avoid]");
       }
-      return {
-        column: boxOf(avoidEl),
-        clear: Array.from(
-          document.querySelectorAll("[data-fish-clear]"),
-          (el) => boxOf(el),
-        ).filter((box): box is Box => box !== null),
-      };
+      const clear = Array.from(
+        document.querySelectorAll("[data-fish-clear]"),
+        (el) => boxOf(el),
+      )
+        .filter((box): box is Box => box !== null)
+        .sort((a, b) => a.top - b.top);
+
+      // the keep-clear zone is only the text itself, between the two bands.
+      // the empty strips above and below the page content are free for fish.
+      let column = boxOf(avoidEl);
+      if (column && clear.length >= 2) {
+        column = {
+          ...column,
+          top: clear[0].bottom,
+          bottom: clear[clear.length - 1].top,
+        };
+      }
+      return { column, clear };
     };
 
     const spawnFish = (index: number): Fish => {
@@ -369,7 +380,7 @@ export default function FishField() {
 
         // turn away from the screen edges before reaching them; band dwellers
         // only avoid the side edges, since their bands sit near the page ends
-        const margin = f.length * 1.7;
+        const margin = f.length * 1.05;
         const edge = (distance: number) => edgeOf(distance, margin) ** 2;
         dx += edge(f.x) * cruise * 3 - edge(width - f.x) * cruise * 3;
         if (!home) {
@@ -380,14 +391,21 @@ export default function FishField() {
         if (column && roomy) {
           const pad = f.length * 0.55;
           const band = clear.find((b) => f.y > b.top - 6 && f.y < b.bottom + 6);
-          const inColumnX = f.x > column.left - pad && f.x < column.right + pad;
-          if (inColumnX && !band) {
-            const mid = (column.left + column.right) / 2;
-            const dir = f.x < mid ? -1 : 1;
-            const depth =
-              dir < 0 ? f.x - (column.left - pad) : column.right + pad - f.x;
-            dx += dir * cruise * (1.5 + (2 * depth) / pad);
-          } else if (band && f.x > column.left && f.x < column.right) {
+          // how far inside the (padded) text area the fish is, per side
+          const fromLeft = f.x - (column.left - pad);
+          const fromRight = column.right + pad - f.x;
+          const fromTop = f.y - (column.top - pad);
+          const fromBottom = column.bottom + pad - f.y;
+          if (fromLeft > 0 && fromRight > 0 && fromTop > 0 && fromBottom > 0) {
+            // inside the keep-out zone: leave by the nearest side
+            const depth = Math.min(fromLeft, fromRight, fromTop, fromBottom);
+            const push = cruise * (1.5 + (2 * depth) / pad);
+            if (depth === fromLeft) dx -= push;
+            else if (depth === fromRight) dx += push;
+            else if (depth === fromTop) dy -= push;
+            else dy += push;
+          }
+          if (band && f.x > column.left && f.x < column.right) {
             // inside a band: keep to it, so fish do not drift into the text
             const room = Math.min(44, (band.bottom - band.top) * 0.3);
             dy += edgeOf(f.y - band.top, room) * cruise * 3;
@@ -700,7 +718,10 @@ export default function FishField() {
       const factorAt = (x: number, y: number) => {
         let factor = 1;
         if (column) {
-          const outside = Math.max(column.left - x, x - column.right, 0);
+          const outside = Math.hypot(
+            Math.max(column.left - x, x - column.right, 0),
+            Math.max(column.top - y, y - column.bottom, 0),
+          );
           factor =
             columnDim + (1 - columnDim) * clamp(outside / COLUMN_RAMP, 0, 1);
         }
