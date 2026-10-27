@@ -102,7 +102,7 @@ export const WORK_ITEMS: readonly WorkItem[] = [
       "built dashboards for internal and client projects",
       "end-to-end automated testing",
     ],
-    tags: ["React", "ElasticSearch Dashboard", "e2e testing"],
+    tags: ["React", "ElasticSearch Dashboard", "E2E Automated Tests"],
     about:
       "built dashboards for internal and client projects with end-to-end automated testing.",
     url: "https://everlytics.io",
