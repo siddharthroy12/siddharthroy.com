@@ -69,6 +69,8 @@ const STEP_SIZES = ANIMATION_STEPS.map((s) => s.size);
 
 const SITE_URL = "https://siddharthroy.com";
 const SITE_TITLE = "siddharth";
+// a new filename, so link previews cached with the old image get replaced
+const OG_IMAGE = `${SITE_URL}/og-siddharth.png`;
 const SITE_DESCRIPTION =
   "software engineer building web apps, automation, games, and AI-powered tools.";
 
@@ -214,14 +216,16 @@ export default function App({ Component, pageProps, router }: AppProps) {
         <meta property="og:url" content={SITE_URL} />
         <meta property="og:title" content={SITE_TITLE} />
         <meta property="og:description" content={SITE_DESCRIPTION} />
-        <meta property="og:image" content={`${SITE_URL}/og.png`} />
-        <meta property="og:image:width" content="1248" />
-        <meta property="og:image:height" content="702" />
+        <meta property="og:image" content={OG_IMAGE} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={SITE_TITLE} />
+        <meta property="og:site_name" content={SITE_TITLE} />
 
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={SITE_TITLE} />
         <meta name="twitter:description" content={SITE_DESCRIPTION} />
-        <meta name="twitter:image" content={`${SITE_URL}/og.png`} />
+        <meta name="twitter:image" content={OG_IMAGE} />
 
         <script
           type="application/ld+json"
@@ -267,6 +271,21 @@ export default function App({ Component, pageProps, router }: AppProps) {
                       : "px-4"
                   }
                 >
+                  {expanded ? (
+                    <motion.img
+                      src="/images/portrait.jpg"
+                      alt="portrait of siddharth"
+                      width={160}
+                      height={160}
+                      initial={SOCIAL_ANIMATION.initial}
+                      animate={SOCIAL_ANIMATION.animate}
+                      transition={{
+                        ...SOCIAL_ANIMATION.transition,
+                        delay: 0.2,
+                      }}
+                      className="mb-4 block size-28 border border-border object-cover sm:absolute sm:top-6 sm:right-4 sm:mb-0 sm:size-40"
+                    />
+                  ) : null}
                   <motion.h1
                     layout
                     ref={ref}
