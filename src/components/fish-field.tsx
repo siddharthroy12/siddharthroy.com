@@ -27,6 +27,8 @@ const COLUMN_RAMP = 24;
 /** The empty bands show fish across the whole row, fading out this many px
     beyond their top and bottom edges rather than cutting off sharply. */
 const BAND_FEATHER = 36;
+/** Extra canvas height beyond the page, so expanding a section does not resize it. */
+const CANVAS_HEADROOM = 700;
 /** When the side gutters are narrower than this, fish cannot stay out of the
     column, so they live in the empty bands instead. */
 const NARROW_GUTTER = 120;
@@ -127,6 +129,10 @@ export default function FishField() {
 
     let width = 0;
     let height = 0;
+    // the allocated canvas is taller than the page by a margin, so small height
+    // changes (a project expanding) never reallocate it or clear the drawing
+    let allocWidth = 0;
+    let allocHeight = 0;
     let cols = 0;
     let rows = 0;
     let intensity = new Float32Array(0);
@@ -711,7 +717,7 @@ export default function FishField() {
     };
 
     const render = ({ column, clear }: Boxes) => {
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, allocWidth, allocHeight);
       const columnDim =
         column && column.left < NARROW_GUTTER ? NARROW_DIM : COLUMN_DIM;
 
@@ -809,38 +815,37 @@ export default function FishField() {
       // the canvas covers the whole page, so it scrolls with the content
       const host = canvas.parentElement;
       const rect = host?.getBoundingClientRect();
-      const nextWidth = Math.max(
-        1,
-        Math.round(rect?.width ?? window.innerWidth),
-      );
-      const nextHeight = Math.max(
-        1,
-        Math.round(rect?.height ?? window.innerHeight),
-      );
-      if (
-        nextWidth === width &&
-        nextHeight === height &&
-        intensity.length > 0
-      ) {
-        return;
+      width = Math.max(1, Math.round(rect?.width ?? window.innerWidth));
+      height = Math.max(1, Math.round(rect?.height ?? window.innerHeight));
+
+      // reallocating clears the canvas, so only do it when the page is wider
+      // than the canvas, or taller than the room we left
+      if (width !== allocWidth || height > allocHeight) {
+        allocWidth = width;
+        allocHeight = height + CANVAS_HEADROOM;
+        canvas.width = Math.max(1, Math.round(allocWidth * pixelRatio));
+        canvas.height = Math.max(1, Math.round(allocHeight * pixelRatio));
+        canvas.style.width = `${allocWidth}px`;
+        canvas.style.height = `${allocHeight}px`;
+        ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+        cols = Math.ceil(allocWidth / CELL);
+        rows = Math.ceil(allocHeight / CELL);
+        layer.width = cols;
+        layer.height = rows;
+        intensity = new Float32Array(cols * rows);
       }
-      width = nextWidth;
-      height = nextHeight;
-      canvas.width = Math.max(1, Math.round(width * pixelRatio));
-      canvas.height = Math.max(1, Math.round(height * pixelRatio));
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
-      cols = Math.ceil(width / CELL);
-      rows = Math.ceil(height / CELL);
-      layer.width = cols;
-      layer.height = rows;
-      intensity = new Float32Array(cols * rows);
-
+      // only add or remove fish when the target clearly changes, so a small
+      // height change never makes a fish pop in or vanish
       const wanted = targetCount();
-      while (fish.length < wanted) fish.push(spawnFish(fish.length));
-      fish.length = wanted;
+      if (fish.length === 0) {
+        while (fish.length < wanted) fish.push(spawnFish(fish.length));
+      } else if (wanted > fish.length + 1) {
+        while (fish.length < wanted - 1) fish.push(spawnFish(fish.length));
+      } else if (wanted < fish.length - 1) {
+        fish.length = wanted + 1;
+      }
 
       if (reducedMotion) {
         sampleFish(0);
@@ -908,10 +913,10 @@ export default function FishField() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-0"
+      className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
       style={{ animation: "fish-fade-in 2s ease-out both" }}
     >
-      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+      <canvas ref={canvasRef} className="absolute top-0 left-0" />
     </div>
   );
 }
