@@ -1,19 +1,10 @@
 import { useEffect, useRef } from "react";
 import { playBlip } from "@/utils/sound";
 
-/**
- * Spacing of the dot grid in CSS pixels. Fish are drawn as smooth shapes at
- * one pixel per cell and then read back as a halftone, so a smaller cell means
- * a more detailed fish.
- */
-const CELL = 5;
 const FRAME_MS = 1000 / 30;
-/** How fast lit dots fade, per second. Higher means shorter trails. */
-const FADE_RATE = 9;
-const SPINE_POINTS = 18;
+const SPINE_POINTS = 20;
 
 const CURSOR_RADIUS = 170;
-const HALO_RADIUS = 70;
 
 const FOOD_LIFE = 8;
 const FOOD_SINK = 8;
@@ -24,31 +15,48 @@ const MAX_RIPPLES = 6;
 /** Fish are hidden behind the text column so they never hurt legibility. */
 const COLUMN_DIM = 0;
 const COLUMN_RAMP = 24;
+/** When the side gutters are narrower than this, fish cannot stay out of the
+    column, so they live in the empty bands instead. */
+const NARROW_GUTTER = 120;
+const NARROW_DIM = 0;
 /** The empty bands show fish across the whole row, fading out this many px
     beyond their top and bottom edges rather than cutting off sharply. */
 const BAND_FEATHER = 36;
 /** Extra canvas height beyond the page, so expanding a section does not resize it. */
 const CANVAS_HEADROOM = 700;
-/** When the side gutters are narrower than this, fish cannot stay out of the
-    column, so they live in the empty bands instead. */
-const NARROW_GUTTER = 120;
-const NARROW_DIM = 0;
 
-type Species = { length: number; cruise: number; brightness: number };
+const TAIL_RATIO = 0.42;
 
-/** Body length in px (tail excluded), calm cruising speed in px/s, brightness. */
+/** Glyphs for a fish body, light to dense, plus outline and water glyphs. */
+const RAMP = "t%SX8@#";
+const OUTLINE = "-|/\\";
+const EXTRA = ".:o*+'";
+const GLYPHS = RAMP + OUTLINE + EXTRA;
+/** Grey levels a glyph can be drawn in. */
+const TONES = [60, 85, 110, 135, 160, 185, 210, 235];
+const TILE = "rgb(232,232,236)";
+
+type Species = { cells: number; cruise: number; brightness: number };
+
+/** Body length in grid cells (tail excluded), calm cruising speed in px/s, brightness. */
 const SPECIES: readonly Species[] = [
-  { length: 70, cruise: 40, brightness: 0.85 },
-  { length: 100, cruise: 32, brightness: 0.92 },
-  { length: 140, cruise: 26, brightness: 1 },
+  { cells: 12, cruise: 40, brightness: 0.85 },
+  { cells: 16, cruise: 32, brightness: 0.92 },
+  { cells: 22, cruise: 26, brightness: 1 },
 ];
 
 type Point = { x: number; y: number };
 /** A koi-style marking: where along the body, how long, how wide, how far off-centre. */
-type Patch = { s: number; len: number; wide: number; off: number };
+type Patch = {
+  s: number;
+  len: number;
+  wide: number;
+  off: number;
+  bright: boolean;
+};
 
 type Fish = {
-  /** Spawn order; the first fish live in the empty bands around the text. */
+  /** Spawn order; also the id written into the layer, and the first fish live in the bands. */
   slot: number;
   x: number;
   y: number;
@@ -60,6 +68,8 @@ type Fish = {
   length: number;
   cruise: number;
   brightness: number;
+  /** +1 when swimming rightward, -1 leftward; eases so fins roll over. */
+  roll: number;
   /** 0 to 1, raised when startled or chasing food. */
   burst: number;
   patches: Patch[];
@@ -68,6 +78,7 @@ type Fish = {
 };
 
 type Food = { x: number; y: number; age: number };
+type Bite = { x: number; y: number; born: number };
 type Ripple = {
   x: number;
   y: number;
@@ -86,6 +97,20 @@ const clamp = (value: number, min: number, max: number) =>
 const angleDiff = (a: number, b: number) =>
   Math.atan2(Math.sin(a - b), Math.cos(a - b));
 
+const hash = (a: number, b: number, c: number) => {
+  let h = (a * 374761393 + b * 668265263 + c * 2147483647) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return (h ^ (h >>> 16)) >>> 0;
+};
+
+/** Which line glyph runs along a direction. */
+const orient = (tx: number, ty: number) => {
+  const m = Math.hypot(tx, ty) || 1;
+  if (Math.abs(ty) < 0.38 * m) return "-";
+  if (Math.abs(tx) < 0.38 * m) return "|";
+  return tx * ty > 0 ? "\\" : "/";
+};
+
 const INTERACTIVE =
   'a, button, input, textarea, select, label, summary, [role="button"], [data-no-fish]';
 
@@ -99,11 +124,12 @@ const edgeOf = (distance: number, room: number) =>
   clamp(1 - distance / room, 0, 1);
 
 /**
- * A page-wide invisible dot grid with koi-like fish swimming through it,
- * seen from above. Each fish is drawn as a real shape, then sampled onto the
- * grid so only the dots it covers light up, fading into a short trail. They
- * school loosely with their own kind, shy away from the cursor, and chase food
- * dropped by a click.
+ * A page-wide pond of ASCII koi. The page is a grid of character cells; each
+ * fish is drawn as a smooth shape, then read back cell by cell: the inside
+ * becomes shaded square tiles topped with density glyphs, the fins and edges
+ * become line glyphs, and the water gets a wake of dots and dashes. Fish stay
+ * out of the text column, cross it only in the empty bands, shy away from the
+ * cursor, and chase food dropped by a click.
  *
  * Mark the text column with `data-fish-avoid` to hide the fish behind it, and
  * empty framed bands with `data-fish-clear` to show them at full strength.
@@ -117,7 +143,7 @@ export default function FishField() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // one pixel per grid cell; the fish are drawn here and read back as dots
+    // one pixel per grid cell; the fish are drawn here and read back as cells
     const layer = document.createElement("canvas");
     const lctx = layer.getContext("2d", { willReadFrequently: true });
     if (!lctx) return;
@@ -133,13 +159,20 @@ export default function FishField() {
     // changes (a project expanding) never reallocate it or clear the drawing
     let allocWidth = 0;
     let allocHeight = 0;
+    // size of one character cell, in CSS px
+    let cw = 10;
+    let ch = 12;
     let cols = 0;
     let rows = 0;
-    let intensity = new Float32Array(0);
+    let energy = new Float32Array(0);
+    let energyTmp = new Float32Array(0);
+    let covered = new Uint8Array(0);
 
     const fish: Fish[] = [];
     const foods: Food[] = [];
+    const bites: Bite[] = [];
     const ripples: Ripple[] = [];
+    let eyeCells: number[] = [];
     // pointer in page space (matches the canvas), and in viewport space
     const pointer = { x: -9999, y: -9999, active: false };
     const pointerClient = { x: -9999, y: -9999 };
@@ -152,22 +185,43 @@ export default function FishField() {
     let clock = 0;
     let avoidEl: Element | null = null;
 
-    // one sprite per brightness level so drawing a dot is a plain blit
-    const sprites = Array.from({ length: 20 }, (_, i) => {
-      const level = i / 19;
-      const tone = Math.round(90 + 150 * level);
-      const sprite = document.createElement("canvas");
-      sprite.width = 32;
-      sprite.height = 32;
-      const c = sprite.getContext("2d");
-      if (c) {
-        c.fillStyle = `rgba(${tone}, ${tone}, ${Math.min(255, tone + 8)}, ${0.35 + 0.65 * level})`;
-        c.beginPath();
-        c.arc(16, 16, 16, 0, Math.PI * 2);
-        c.fill();
+    // each glyph pre-rendered in each grey, so drawing one is a plain blit
+    let atlas: Record<string, HTMLCanvasElement[]> = {};
+    const buildAtlas = () => {
+      const next: Record<string, HTMLCanvasElement[]> = {};
+      const w = Math.max(1, Math.round(cw * pixelRatio));
+      const h = Math.max(1, Math.round(ch * pixelRatio));
+      for (const glyph of GLYPHS) {
+        next[glyph] = TONES.map((tone) => {
+          const sprite = document.createElement("canvas");
+          sprite.width = w;
+          sprite.height = h;
+          const c = sprite.getContext("2d");
+          if (c) {
+            c.font = `700 ${Math.round(ch * 0.72 * pixelRatio)}px Mononoki, ui-monospace, Menlo, monospace`;
+            c.textAlign = "center";
+            c.textBaseline = "middle";
+            c.fillStyle = `rgb(${tone}, ${tone}, ${Math.min(255, tone + 6)})`;
+            c.fillText(glyph, w / 2, h / 2 + pixelRatio);
+          }
+          return sprite;
+        });
       }
-      return sprite;
-    });
+      atlas = next;
+    };
+
+    const drawGlyph = (
+      glyph: string,
+      tone: number,
+      alpha: number,
+      col: number,
+      row: number,
+    ) => {
+      const sprite = atlas[glyph]?.[clamp(tone, 0, TONES.length - 1)];
+      if (!sprite || alpha <= 0.01) return;
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(sprite, col * cw, row * ch, cw, ch);
+    };
 
     const boxOf = (el: Element | null): Box | null => {
       if (!el) return null;
@@ -233,8 +287,9 @@ export default function FishField() {
         y = home.top + (home.bottom - home.top) * (0.3 + Math.random() * 0.4);
       }
 
+      const length = species.cells * cw;
       const heading = Math.random() * Math.PI * 2;
-      const gap = species.length / (SPINE_POINTS - 1);
+      const gap = length / (SPINE_POINTS - 1);
       return {
         slot: index,
         x,
@@ -243,15 +298,17 @@ export default function FishField() {
         speed: species.cruise,
         phase: Math.random() * Math.PI * 2,
         seed: Math.random() * Math.PI * 2,
-        length: species.length,
+        length,
         cruise: species.cruise,
         brightness: species.brightness,
+        roll: Math.cos(heading) >= 0 ? 1 : -1,
         burst: 0,
-        patches: Array.from({ length: 3 }, (_, i) => ({
-          s: 0.2 + i * 0.22 + Math.random() * 0.1,
-          len: 0.07 + Math.random() * 0.07,
-          wide: 0.45 + Math.random() * 0.4,
+        patches: Array.from({ length: 4 }, (_, i) => ({
+          s: 0.16 + i * 0.18 + Math.random() * 0.08,
+          len: 0.06 + Math.random() * 0.06,
+          wide: 0.5 + Math.random() * 0.4,
           off: (Math.random() - 0.5) * 0.7,
+          bright: Math.random() < 0.55,
         })),
         spine: Array.from({ length: SPINE_POINTS }, (_, i) => ({
           x: x - Math.cos(heading) * gap * i,
@@ -262,75 +319,22 @@ export default function FishField() {
 
     const targetCount = () =>
       width < 900
-        ? 5
+        ? 4
         : // sized by the side gutters, since the text column stays clear
-          clamp(Math.round(((width - 656) * height) / 130000), 5, 11);
+          clamp(Math.round(((width - 656) * height) / 240000), 4, 8);
 
-    const stampCell = (col: number, row: number, value: number) => {
-      if (col < 0 || row < 0 || col >= cols || row >= rows) return;
-      const i = row * cols + col;
-      if (value > intensity[i]) intensity[i] = value;
+    const cellAt = (x: number, y: number) => {
+      const col = Math.floor(x / cw);
+      const row = Math.floor(y / ch);
+      return col < 0 || row < 0 || col >= cols || row >= rows
+        ? -1
+        : row * cols + col;
     };
 
-    const stampDisc = (x: number, y: number, radius: number, value: number) => {
-      const c0 = Math.floor((x - radius) / CELL);
-      const c1 = Math.ceil((x + radius) / CELL);
-      const r0 = Math.floor((y - radius) / CELL);
-      const r1 = Math.ceil((y + radius) / CELL);
-      for (let row = r0; row <= r1; row += 1) {
-        for (let col = c0; col <= c1; col += 1) {
-          const d = Math.hypot((col + 0.5) * CELL - x, (row + 0.5) * CELL - y);
-          if (d <= radius)
-            stampCell(col, row, value * (1 - (d / radius) * 0.4));
-        }
-      }
-    };
-
-    const stampRipple = (r: Ripple) => {
-      const radius = r.speed * r.t;
-      const reach = radius + r.width;
-      const c0 = Math.max(0, Math.floor((r.x - reach) / CELL));
-      const c1 = Math.min(cols - 1, Math.ceil((r.x + reach) / CELL));
-      const r0 = Math.max(0, Math.floor((r.y - reach) / CELL));
-      const r1 = Math.min(rows - 1, Math.ceil((r.y + reach) / CELL));
-      const fade = 1 - r.t / r.life;
-      for (let row = r0; row <= r1; row += 1) {
-        for (let col = c0; col <= c1; col += 1) {
-          const d = Math.hypot(
-            (col + 0.5) * CELL - r.x,
-            (row + 0.5) * CELL - r.y,
-          );
-          const band = Math.abs(d - radius);
-          if (band < r.width) {
-            stampCell(col, row, (1 - band / r.width) * fade * r.strength);
-          }
-        }
-      }
-    };
-
-    const stampHalo = () => {
-      const c0 = Math.max(0, Math.floor((pointer.x - HALO_RADIUS) / CELL));
-      const c1 = Math.min(
-        cols - 1,
-        Math.ceil((pointer.x + HALO_RADIUS) / CELL),
-      );
-      const r0 = Math.max(0, Math.floor((pointer.y - HALO_RADIUS) / CELL));
-      const r1 = Math.min(
-        rows - 1,
-        Math.ceil((pointer.y + HALO_RADIUS) / CELL),
-      );
-      for (let row = r0; row <= r1; row += 1) {
-        for (let col = c0; col <= c1; col += 1) {
-          const d = Math.hypot(
-            (col + 0.5) * CELL - pointer.x,
-            (row + 0.5) * CELL - pointer.y,
-          );
-          if (d < HALO_RADIUS) {
-            const k = 1 - d / HALO_RADIUS;
-            stampCell(col, row, k * k * 0.6);
-          }
-        }
-      }
+    /** Disturb the water around a point; it shows as dots and dashes. */
+    const disturb = (x: number, y: number, amount: number) => {
+      const i = cellAt(x, y);
+      if (i >= 0) energy[i] = Math.min(1.5, energy[i] + amount);
     };
 
     /** Swim: steer toward a desired heading with a limited turn rate. */
@@ -362,7 +366,7 @@ export default function FishField() {
           const oy = o.y - f.y;
           const d = Math.hypot(ox, oy);
           const sameKind = o.length === f.length;
-          if (sameKind && d < 260) {
+          if (sameKind && d < 300) {
             n += 1;
             cx += o.x;
             cy += o.y;
@@ -377,8 +381,8 @@ export default function FishField() {
           }
         }
         if (n > 0) {
-          dx += (ax / n) * cruise * 0.4 + ((cx / n - f.x) / 260) * cruise * 0.5;
-          dy += (ay / n) * cruise * 0.4 + ((cy / n - f.y) / 260) * cruise * 0.5;
+          dx += (ax / n) * cruise * 0.4 + ((cx / n - f.x) / 300) * cruise * 0.5;
+          dy += (ay / n) * cruise * 0.4 + ((cy / n - f.y) / 300) * cruise * 0.5;
         }
 
         // the first fish, or all of them on narrow screens, live in the bands
@@ -456,8 +460,9 @@ export default function FishField() {
           dx += (ox / d) * cruise * 1.8;
           dy += (oy / d) * cruise * 1.8;
           f.burst = Math.max(f.burst, 0.3);
-          if (d < CELL * 3) {
+          if (d < cw * 3) {
             foods.splice(foods.indexOf(nearest), 1);
+            bites.push({ x: nearest.x, y: nearest.y, born: clock });
             ripples.push({
               x: nearest.x,
               y: nearest.y,
@@ -470,9 +475,9 @@ export default function FishField() {
           }
         }
 
-        // limited turn rate gives smooth arcs instead of sharp pivots
+        // limited turn rate gives smooth arcs instead of sharp pivots; a fish
+        // cannot turn tighter than about two thirds of its own length
         const wanted = Math.atan2(dy, dx);
-        // a fish cannot turn tighter than about two thirds of its own length
         const turnRate = Math.min(
           1.5,
           (f.speed / (f.length * 0.65)) * (1 + f.burst * 0.8),
@@ -498,6 +503,8 @@ export default function FishField() {
         f.y = clamp(f.y, -60, height + 60);
 
         f.burst *= Math.exp(-dt * 1.4);
+        const facing = Math.cos(f.heading) >= 0 ? 1 : -1;
+        f.roll += (facing - f.roll) * Math.min(1, dt * 7);
 
         // the body follows the head, so turns bend it into a smooth curve
         const gap = f.length / (SPINE_POINTS - 1);
@@ -512,16 +519,27 @@ export default function FishField() {
           cur.x = prev.x + (sx / d) * gap;
           cur.y = prev.y + (sy / d) * gap;
         }
+
+        // the tail stirs the water, leaving a wake behind
+        for (let i = SPINE_POINTS - 4; i < SPINE_POINTS; i += 1) {
+          disturb(f.spine[i].x, f.spine[i].y, 0.05 + 0.0015 * f.speed);
+        }
       }
     };
 
-    /** Draws one koi, seen from above, onto the one-pixel-per-cell layer. */
+    /**
+     * Draws one koi, seen from above, onto the one-pixel-per-cell layer. The
+     * colour channels carry meaning for the read-back: red is how bright a
+     * body cell is, green marks fins, and blue says which fish it belongs to.
+     */
     const drawFish = (f: Fish) => {
       const L = f.length;
       const H = L * 0.15;
       const N = f.spine.length;
-      const white = (alpha: number) =>
-        `rgba(255,255,255,${alpha * f.brightness})`;
+      const idB = f.slot * 20;
+      const body = (shade: number) =>
+        `rgb(${Math.round(clamp(shade * f.brightness, 0, 1) * 255)},0,${idB})`;
+      const fin = `rgb(0,255,${idB})`;
 
       type Joint = Point & { nx: number; ny: number; w: number };
       const joints: Joint[] = [];
@@ -563,7 +581,7 @@ export default function FishField() {
       tdy /= tl;
       const tnx = -tdy;
       const tny = tdx;
-      const tailLen = L * 0.42;
+      const tailLen = L * TAIL_RATIO;
       const spread = H * 1.2;
       const lag = f.phase - 5.2 * 1.3;
       const mid = {
@@ -581,7 +599,7 @@ export default function FishField() {
       uy /= ul;
       const vx = -uy;
       const vy = ux;
-      lctx.fillStyle = white(0.6);
+      lctx.fillStyle = fin;
       lctx.beginPath();
       lctx.moveTo(last.x + tnx * H * 0.14, last.y + tny * H * 0.14);
       lctx.quadraticCurveTo(
@@ -617,18 +635,14 @@ export default function FishField() {
         const rear = at(0.6);
         const tipJ = at(0.66);
         const flick = Math.sin(f.phase + (side > 0 ? 0 : Math.PI)) * H * 0.12;
-        const tipP = out(tipJ, side, tipJ.w + H * 0.45 + flick);
-        lctx.fillStyle = white(0.42);
+        const tipP = out(tipJ, side, tipJ.w + H * 0.5 + flick);
+        const b0 = out(base, side, base.w * 0.8);
+        const b1 = out(rear, side, rear.w * 0.85);
+        lctx.fillStyle = fin;
         lctx.beginPath();
-        lctx.moveTo(
-          out(base, side, base.w * 0.8).x,
-          out(base, side, base.w * 0.8).y,
-        );
+        lctx.moveTo(b0.x, b0.y);
         lctx.lineTo(tipP.x, tipP.y);
-        lctx.lineTo(
-          out(rear, side, rear.w * 0.85).x,
-          out(rear, side, rear.w * 0.85).y,
-        );
+        lctx.lineTo(b1.x, b1.y);
         lctx.closePath();
         lctx.fill();
       }
@@ -641,9 +655,9 @@ export default function FishField() {
         c.x - c.nx * H,
         c.y - c.ny * H,
       );
-      shade.addColorStop(0, white(0.55));
-      shade.addColorStop(0.5, white(1));
-      shade.addColorStop(1, white(0.55));
+      shade.addColorStop(0, body(0.5));
+      shade.addColorStop(0.5, body(0.82));
+      shade.addColorStop(1, body(0.5));
       const outline: Point[] = [
         ...joints.map((j) => out(j, 1, j.w)),
         ...joints.map((j) => out(j, -1, j.w)).reverse(),
@@ -669,9 +683,9 @@ export default function FishField() {
         const tipJ = at(0.42);
         const flutter = Math.sin(f.phase + (side > 0 ? 0 : Math.PI)) * H * 0.2;
         const root = out(base, side, base.w * 0.8);
-        const tipP = out(tipJ, side, tipJ.w + H * 0.85 + flutter);
+        const tipP = out(tipJ, side, tipJ.w + H * 0.9 + flutter);
         const rear = out(back, side, back.w * 0.9);
-        lctx.fillStyle = white(0.5);
+        lctx.fillStyle = fin;
         lctx.beginPath();
         lctx.moveTo(root.x, root.y);
         lctx.quadraticCurveTo(
@@ -685,12 +699,12 @@ export default function FishField() {
         lctx.fill();
       }
 
-      // koi markings, as softer patches on the body
-      lctx.globalCompositeOperation = "destination-out";
-      lctx.fillStyle = "rgba(0,0,0,0.4)";
+      // koi markings: bright and dark patches, only where there is body
+      lctx.globalCompositeOperation = "source-atop";
       for (const patch of f.patches) {
         const j = at(patch.s);
         const centre = out(j, 1, j.w * patch.off);
+        lctx.fillStyle = patch.bright ? body(1.1) : body(0.2);
         lctx.beginPath();
         lctx.ellipse(
           centre.x,
@@ -703,24 +717,47 @@ export default function FishField() {
         );
         lctx.fill();
       }
+      lctx.globalCompositeOperation = "source-over";
 
-      // two eyes, cut out of the head
+      // two eyes, remembered as cells so they can be drawn as an "o" later
       const eyeJ = at(0.11);
-      lctx.fillStyle = "#000";
       for (const side of [1, -1]) {
         const eye = out(eyeJ, side, eyeJ.w * 0.62);
-        lctx.beginPath();
-        lctx.arc(eye.x, eye.y, Math.max(L * 0.035, 2.4), 0, Math.PI * 2);
-        lctx.fill();
+        const i = cellAt(eye.x, eye.y);
+        if (i >= 0) eyeCells.push(i);
       }
-      lctx.globalCompositeOperation = "source-over";
     };
 
-    const render = ({ column, clear }: Boxes) => {
+    const render = ({ column, clear }: Boxes, dt: number) => {
+      // draw every fish into the one-pixel-per-cell layer, then read it back
+      lctx.setTransform(1, 0, 0, 1, 0, 0);
+      lctx.clearRect(0, 0, cols, rows);
+      lctx.setTransform(1 / cw, 0, 0, 1 / ch, 0, 0);
+      eyeCells = [];
+      for (const f of fish) drawFish(f);
+      const px = lctx.getImageData(0, 0, cols, rows).data;
+
+      // the wake spreads out and fades
+      const keep = Math.exp(-1.1 * dt);
+      for (let r = 0; r < rows; r += 1) {
+        for (let c = 0; c < cols; c += 1) {
+          const i = r * cols + c;
+          const here = energy[i];
+          const left = c > 0 ? energy[i - 1] : here;
+          const right = c < cols - 1 ? energy[i + 1] : here;
+          const up = r > 0 ? energy[i - cols] : here;
+          const down = r < rows - 1 ? energy[i + cols] : here;
+          energyTmp[i] = (4 * here + left + right + up + down) * 0.125 * keep;
+        }
+      }
+      [energy, energyTmp] = [energyTmp, energy];
+
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       ctx.clearRect(0, 0, allocWidth, allocHeight);
+      covered.fill(0);
+
       const columnDim =
         column && column.left < NARROW_GUTTER ? NARROW_DIM : COLUMN_DIM;
-
       const factorAt = (x: number, y: number) => {
         let factor = 1;
         if (column) {
@@ -739,39 +776,169 @@ export default function FishField() {
         return factor;
       };
 
-      for (let i = 0; i < intensity.length; i += 1) {
-        const value = intensity[i];
-        if (value < 0.04) continue;
-        const x = ((i % cols) + 0.5) * CELL;
-        const y = (Math.floor(i / cols) + 0.5) * CELL;
-        const factor = factorAt(x, y);
+      const alphaAt = (c: number, r: number) =>
+        c < 0 || r < 0 || c >= cols || r >= rows
+          ? 0
+          : px[(r * cols + c) * 4 + 3] / 255;
+      const tile = (col: number, row: number, alpha: number) => {
+        if (alpha <= 0.01) return;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = TILE;
+        ctx.fillRect(col * cw + 1, row * ch + 1, cw - 1, ch - 1);
+      };
+      const toneFor = (gray: number) =>
+        clamp(
+          Math.round((gray / 235) * (TONES.length - 1)),
+          0,
+          TONES.length - 1,
+        );
+
+      for (let row = 0; row < rows; row += 1) {
+        for (let col = 0; col < cols; col += 1) {
+          const i = row * cols + col;
+          const p = i * 4;
+          const a = px[p + 3];
+          const x = col * cw + cw / 2;
+          const y = row * ch + ch / 2;
+
+          if (a < 24) {
+            // open water: only the wake shows
+            const e = energy[i];
+            if (e >= 0.22) {
+              const factor = factorAt(x, y);
+              drawGlyph(
+                e > 0.5 ? "-" : ".",
+                6,
+                0.35 * Math.min(1, (e - 0.22) * 1.4) * factor,
+                col,
+                row,
+              );
+            }
+            continue;
+          }
+
+          covered[i] = 1;
+          const factor = factorAt(x, y);
+          if (factor <= 0.01) continue;
+
+          const a01 = a / 255;
+          const red = px[p];
+          const green = px[p + 1];
+          const owner = fish[Math.round(px[p + 2] / 20)];
+          const lx = owner ? Math.floor((x - owner.x) / cw) : col;
+          const ly = owner ? Math.floor((y - owner.y) / ch) : row;
+          const h = hash(lx, ly, owner ? owner.slot : 0);
+
+          if (green > 150 && green > red) {
+            // fins: a faint tile with a line glyph along the edge
+            tile(col, row, 0.1 * a01 * factor);
+            const gx = (alphaAt(col + 1, row) - alphaAt(col - 1, row)) / cw;
+            const gy = (alphaAt(col, row + 1) - alphaAt(col, row - 1)) / ch;
+            const glyph = Math.hypot(gx, gy) < 0.002 ? "." : orient(-gy, gx);
+            drawGlyph(glyph, 6, 0.6 * a01 * factor, col, row);
+            continue;
+          }
+
+          const shade = red / 255;
+          const tileAlpha = 0.1 + 0.8 * Math.min(1, shade * 1.1);
+          const twinkle =
+            hash(h, Math.floor(clock * 1.4), 7) % 100 < 3 ? 0.55 : 1;
+
+          if (a01 >= 0.62) {
+            // inside the body: a shaded tile with a density glyph on top
+            tile(col, row, tileAlpha * twinkle * factor);
+            const glyph =
+              RAMP[clamp(Math.round((1 - shade) * 4) + ((h >>> 4) % 3), 0, 6)];
+            drawGlyph(glyph, toneFor(232 * tileAlpha * 0.42), factor, col, row);
+          } else {
+            // the edge of the body: a thinner tile, now and then a dot
+            tile(col, row, tileAlpha * a01 * 0.55 * factor);
+            if (h % 3 === 0 && a01 > 0.3) {
+              drawGlyph(
+                ".",
+                toneFor(232 * tileAlpha * 0.5),
+                factor * 0.8,
+                col,
+                row,
+              );
+            }
+          }
+        }
+      }
+
+      // eyes: a dark cell with a pale "o"
+      for (const i of eyeCells) {
+        if (!covered[i]) continue;
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const factor = factorAt(col * cw + cw / 2, row * ch + ch / 2);
         if (factor <= 0.01) continue;
-        // halftone: brighter areas get bigger dots
-        const size = 0.9 + (CELL - 1.2) * Math.sqrt(Math.min(1, value));
-        ctx.globalAlpha = factor;
-        ctx.drawImage(
-          sprites[Math.min(19, Math.floor(value * 19.99))],
-          x - size / 2,
-          y - size / 2,
-          size,
-          size,
+        ctx.globalAlpha = 0.9 * factor;
+        ctx.fillStyle = "#09090b";
+        ctx.fillRect(col * cw + 1, row * ch + 1, cw - 1, ch - 1);
+        drawGlyph("o", 7, factor, col, row);
+      }
+
+      // ripples: a ring of line glyphs followed by a ring of dots
+      for (const r of ripples) {
+        const fade = Math.max(0, 1 - r.t / r.life) ** 1.5 * r.strength;
+        for (let ring = 0; ring < 2; ring += 1) {
+          const radius =
+            52 *
+            Math.max(0, r.t - 0.45 * ring) *
+            (0.7 + 0.5 * r.strength) *
+            (r.speed / 90);
+          if (radius < 2) continue;
+          const reach = radius + cw;
+          const c0 = Math.max(0, Math.floor((r.x - reach) / cw));
+          const c1 = Math.min(cols - 1, Math.floor((r.x + reach) / cw));
+          const r0 = Math.max(0, Math.floor((r.y - reach) / ch));
+          const r1 = Math.min(rows - 1, Math.floor((r.y + reach) / ch));
+          for (let rr = r0; rr <= r1; rr += 1) {
+            for (let cc = c0; cc <= c1; cc += 1) {
+              if (covered[rr * cols + cc]) continue;
+              const dx = cc * cw + cw / 2 - r.x;
+              const dy = rr * ch + ch / 2 - r.y;
+              if (Math.abs(Math.hypot(dx, dy) - radius) > cw * 0.6) continue;
+              const factor = factorAt(cc * cw + cw / 2, rr * ch + ch / 2);
+              drawGlyph(
+                ring === 1 ? "." : orient(-dy, dx),
+                6,
+                fade * (ring === 0 ? 0.55 : 0.3) * factor,
+                cc,
+                rr,
+              );
+            }
+          }
+        }
+      }
+
+      // food, and the little burst when a fish takes it
+      for (const food of foods) {
+        const i = cellAt(food.x, food.y);
+        if (i < 0 || covered[i]) continue;
+        const pulse = 0.8 + 0.2 * Math.sin(clock * 6 + food.x);
+        const factor = factorAt(food.x, food.y);
+        drawGlyph("o", 7, pulse * factor, i % cols, Math.floor(i / cols));
+      }
+      for (let i = bites.length - 1; i >= 0; i -= 1) {
+        const age = (clock - bites[i].born) / 0.45;
+        if (age >= 1) {
+          bites.splice(i, 1);
+          continue;
+        }
+        const cell = cellAt(bites[i].x, bites[i].y);
+        if (cell < 0) continue;
+        const glyph = age < 0.35 ? "*" : age < 0.7 ? "+" : ".";
+        drawGlyph(
+          glyph,
+          7,
+          (1 - age * age) * factorAt(bites[i].x, bites[i].y),
+          cell % cols,
+          Math.floor(cell / cols),
         );
       }
       ctx.globalAlpha = 1;
-    };
-
-    /** Draw every fish, then fold what they cover into the dot intensities. */
-    const sampleFish = (fade: number) => {
-      lctx.setTransform(1, 0, 0, 1, 0, 0);
-      lctx.clearRect(0, 0, cols, rows);
-      lctx.setTransform(1 / CELL, 0, 0, 1 / CELL, 0, 0);
-      for (const f of fish) drawFish(f);
-      const pixels = lctx.getImageData(0, 0, cols, rows).data;
-      for (let i = 0; i < intensity.length; i += 1) {
-        const covered = pixels[i * 4 + 3] / 255;
-        const decayed = intensity[i] * fade;
-        intensity[i] = covered > decayed ? covered : decayed;
-      }
     };
 
     const frame = (now: number) => {
@@ -799,16 +966,21 @@ export default function FishField() {
       pointer.x = pointerClient.x - originX;
       pointer.y = pointerClient.y - originY;
       stepFish(dt, boxes);
-      sampleFish(Math.exp(-dt * FADE_RATE));
 
-      if (pointer.active) stampHalo();
-      for (const r of ripples) stampRipple(r);
-      for (const food of foods) {
-        const pulse = 0.85 + 0.15 * Math.sin(clock * 9 + food.x);
-        stampDisc(food.x, food.y, CELL * 1.6, pulse);
+      // the cursor stirs the water too
+      if (pointer.active) {
+        disturb(pointer.x, pointer.y, 0.34);
+        for (const [ox, oy] of [
+          [cw, 0],
+          [-cw, 0],
+          [0, ch],
+          [0, -ch],
+        ]) {
+          disturb(pointer.x + ox, pointer.y + oy, 0.14);
+        }
       }
 
-      render(boxes);
+      render(boxes, dt);
     };
 
     const layout = () => {
@@ -818,9 +990,15 @@ export default function FishField() {
       width = Math.max(1, Math.round(rect?.width ?? window.innerWidth));
       height = Math.max(1, Math.round(rect?.height ?? window.innerHeight));
 
+      // cells grow a little on wide screens, like characters in a terminal
+      const nextCw = clamp(Math.round(window.innerWidth / 125), 8, 11);
+      const cellsChanged = nextCw !== cw || nextCw + 2 !== ch;
+      cw = nextCw;
+      ch = nextCw + 2;
+
       // reallocating clears the canvas, so only do it when the page is wider
       // than the canvas, or taller than the room we left
-      if (width !== allocWidth || height > allocHeight) {
+      if (width !== allocWidth || height > allocHeight || cellsChanged) {
         allocWidth = width;
         allocHeight = height + CANVAS_HEADROOM;
         canvas.width = Math.max(1, Math.round(allocWidth * pixelRatio));
@@ -829,11 +1007,20 @@ export default function FishField() {
         canvas.style.height = `${allocHeight}px`;
         ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
-        cols = Math.ceil(allocWidth / CELL);
-        rows = Math.ceil(allocHeight / CELL);
+        cols = Math.ceil(allocWidth / cw);
+        rows = Math.ceil(allocHeight / ch);
         layer.width = cols;
         layer.height = rows;
-        intensity = new Float32Array(cols * rows);
+        energy = new Float32Array(cols * rows);
+        energyTmp = new Float32Array(cols * rows);
+        covered = new Uint8Array(cols * rows);
+        buildAtlas();
+
+        // fish are sized in cells, so resize any that already exist
+        for (const f of fish) {
+          const species = SPECIES[f.slot % SPECIES.length];
+          f.length = species.cells * cw;
+        }
       }
 
       // only add or remove fish when the target clearly changes, so a small
@@ -847,10 +1034,7 @@ export default function FishField() {
         fish.length = wanted + 1;
       }
 
-      if (reducedMotion) {
-        sampleFish(0);
-        render(readBoxes());
-      }
+      if (reducedMotion) render(readBoxes(), 0);
     };
 
     const setPointer = (e: PointerEvent) => {
@@ -888,6 +1072,11 @@ export default function FishField() {
     };
 
     layout();
+    // the glyph atlas needs the real font, which may still be loading
+    void document.fonts?.ready.then(() => {
+      buildAtlas();
+      if (reducedMotion) render(readBoxes(), 0);
+    });
     // the page height changes when sections expand, so watch the host too
     const resizeObserver = new ResizeObserver(layout);
     if (canvas.parentElement) resizeObserver.observe(canvas.parentElement);
