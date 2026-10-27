@@ -1,7 +1,12 @@
 import AnimatedText from "@/components/animated-text";
 import FishField from "@/components/fish-field";
 import GutterNote from "@/components/gutter-note";
-import { GitHubIcon, LinkedInIcon, XIcon } from "@/components/icons";
+import {
+  GitHubIcon,
+  InstagramIcon,
+  LinkedInIcon,
+  XIcon,
+} from "@/components/icons";
 import SoundToggle from "@/components/sound-toggle";
 import StatusLine from "@/components/status-line";
 import { EDUCATION, PROJECTS, SOCIALS, WORK_ITEMS } from "@/utils/constants";
@@ -100,6 +105,7 @@ const SOCIAL_ICONS: Record<string, React.ReactNode> = {
   GitHub: <GitHubIcon />,
   LinkedIn: <LinkedInIcon />,
   X: <XIcon />,
+  Instagram: <InstagramIcon />,
 };
 
 export default function App({ Component, pageProps, router }: AppProps) {

@@ -64,6 +64,7 @@ export const SOCIALS: readonly Social[] = [
   { label: "GitHub", href: "https://github.com/siddharthroy12" },
   { label: "LinkedIn", href: "https://www.linkedin.com/in/reactoverflow/" },
   { label: "X", href: "https://x.com/cybrchad" },
+  { label: "Instagram", href: "https://www.instagram.com/cybrchad/" },
 ];
 
 export const WORK_ITEMS: readonly WorkItem[] = [

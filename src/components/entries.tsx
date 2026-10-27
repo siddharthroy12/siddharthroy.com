@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { memo, type ReactNode, useCallback, useEffect, useState } from "react";
 import {
   ArrowUpRightIcon,
+  BuildingIcon,
   ChevronsUpDownIcon,
   CodeIcon,
   GraduationCapIcon,
@@ -175,7 +176,11 @@ export const WorkEntry = memo(function WorkEntry({
           rel="noopener noreferrer"
           className="flex min-w-0 items-center gap-2.5"
         >
-          <Badge label={item.company} className="size-6 text-[11px]" />
+          <Badge
+            label={item.company}
+            className="size-6 text-[11px]"
+            icon={<BuildingIcon className="size-3.5" />}
+          />
           <h3 className="truncate text-xl font-medium tracking-tight">
             {item.company}
           </h3>
