@@ -75,10 +75,11 @@ export const WORK_ITEMS: readonly WorkItem[] = [
     date: "apr 2024 — present",
     since: "2024-04",
     bullets: [
-      "bootstrapped Xquizit, a proctored test taking platform",
-      "built frontend for FinXray",
-      "built LLM based features",
-      "worked on frontends for financial platforms",
+      "bootstrapped and maintained Xquizit, an AI-driven proctored test and interview platform, and made most of its UI and architectural design decisions",
+      "optimized Xquizit for a high load of simultaneous tests and interviews, and worked on its stability and reliability",
+      "built LLM-based features for Xquizit such as proctoring, translation and test generation, and optimized test generation to cut cost and improve speed",
+      "built and designed the entire FinXray frontend from scratch, a stock news platform, plus its Flutter mobile app",
+      "built and designed frontends for financial platforms for clients",
     ],
     tags: [
       "TypeScript",
@@ -90,21 +91,35 @@ export const WORK_ITEMS: readonly WorkItem[] = [
       "Figma",
       "Flutter",
     ],
-    about: "frontend + backend development for Xquizit and FinXray.",
+    about:
+      "frontend + backend development for Xquizit and FinXray, plus a Flutter app for FinXray.",
     url: "https://algo-one.com",
+  },
+  {
+    company: "SARAL",
+    slug: "saral",
+    role: "frontend developer",
+    date: "feb 2024 — apr 2024",
+    bullets: [
+      "built new features on the dashboard, fixed bugs and improved existing features",
+    ],
+    about:
+      "frontend development on the dashboard of SARAL, an influencer marketing platform.",
+    url: "https://www.getsaral.com/",
   },
   {
     company: "Everlytics",
     slug: "everlytics",
     role: "frontend developer intern",
-    date: "oct 2022 — 2024",
+    date: "oct 2022 — feb 2024",
     bullets: [
-      "built dashboards for internal and client projects",
-      "end-to-end automated testing",
+      "built and designed dashboards for internal and client projects",
+      "worked as a lead for the frontend codebase, managing team members and doing code reviews",
+      "wrote end-to-end automated tests",
     ],
-    tags: ["React", "ElasticSearch Dashboard", "E2E Automated Tests"],
+    tags: ["React", "ElasticSearch Dashboard", "e2e testing"],
     about:
-      "built dashboards for internal and client projects with end-to-end automated testing.",
+      "built dashboards for internal and client projects and led the frontend codebase.",
     url: "https://everlytics.io",
   },
 ];
